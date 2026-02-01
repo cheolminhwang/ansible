@@ -1,0 +1,51 @@
+---
+- hosts: "{{ env }}"
+  gather_facts: no
+  remote_user: jenkins
+  #become: yes
+  #become_user: oracle
+  #become_method: sudo
+
+  #vars_files:
+  #  - ../../ansible_automation_password_vault.yml
+  #vars:
+  #  backup_date: "{{ '%m%d%Y' | strftime }}"
+
+  tasks:
+
+    - name: Run task on the selected server
+      ansible.builtin.command: echo "Running on {{ ansible_host }}"
+      delegate_to: "{{ ansible_host }}"
+      run_once: true
+
+    - name: Print environment and url name
+      debug:
+        msg: "Running playbook in Environment: {{ env }}, url: {{ app_url }}, workspace: {{ workspace }}, token: {{ token }}"
+      run_once: true
+
+    - name: jenkins-cli.jar
+      shell:
+        wget {{ app_url }}/jnlpJars/jenkins-cli.jar
+      run_once: true
+      args:
+        chdir: "{{ workspace }}"
+      register: ls_result
+
+    - name: Print
+      debug:
+        msg: "Running playbook in Environment: {{ ls_result.stdout }}, url: {{ ls_result.stderr }}"
+      run_once: true
+
+    - name: jenkins-plugin-manager-.jar
+      shell:
+        wget https://github.com/jenkinsci/plugin-installation-manager-tool/releases/download/2.13.2/jenkins-plugin-manager-2.13.2.jar
+      run_once: true
+      args:
+        chdir: "{{ workspace }}"
+      register: ls_result
+
+    - name: Print
+      debug:
+        msg: "Running playbook in Environment: {{ ls_result.stdout }}, url: {{ ls_result.stderr }}"
+      run_once: true
+

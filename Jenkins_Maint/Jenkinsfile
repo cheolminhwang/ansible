@@ -1,0 +1,53 @@
+pipeline {
+    agent {
+		node{
+			label 'built-in'
+			customWorkspace '/stage/asi/automations/Jenkins_Maint'
+		}
+	}
+
+    stages {		 
+		stage('Checkout') {
+			steps {
+				checkout scm
+			}			
+        }
+
+        stage('SafeRestart') {
+/*            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'jenkins-username-password', usernameVariable: 'J_USER', passwordVariable: 'J_PASS')]) {
+                        def response = sh(
+                            script: """
+						    	cd Jenkins_Maint
+                                bash ./shSafeRestart.sh https://build-nonp.dhsie.hawaii.gov jenkins $J_PASS                       
+                            """,
+                            returnStdout: true
+                        ).trim() 
+                        echo "response:${response}"               
+                    }
+                } 
+            }
+        } //withCredentials([sshUserPrivateKey(credentialsId: 'jenkins_private_key', keyFileVariable: 'JENKINS_PRIVATE_KEY-1')]) {
+*/          
+            steps{
+                withCredentials([usernamePassword(credentialsId: 'jenkins-username-password', usernameVariable: 'J_USER', passwordVariable: 'J_PASS')]) {
+                    ansiColor('xterm') {
+                        ansiblePlaybook(
+                            playbook: "${WORKSPACE}/Jenkins_Maint/ansible/update.yml",
+                            inventory: "${WORKSPACE}/Jenkins_Maint/ansible/inventory/hosts.yml",
+                            credentialsId: 'jenkins_private_key',
+                            colorized: true,
+                            extraVars: [
+                                env: "${env.Environment}",
+                                user: "jenkins",
+                                token: "${J_PASS}",
+                                workspace: "${WORKSPACE}"
+                            ]
+                        )
+                    }
+                }
+            }	
+        }
+    }
+}
