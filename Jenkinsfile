@@ -5,6 +5,9 @@ pipeline {
 			customWorkspace '/var/jenkins_home/workspace/ansible'
 		}
 	}
+    environment {       
+	   def result = ""
+    }
 
     stages {		 
 		stage('Cleanup') {
@@ -39,8 +42,8 @@ pipeline {
         stage('Ansible') {
             steps{
                 withCredentials([usernamePassword(credentialsId: 'jenkins', usernameVariable: 'J_USER', passwordVariable: 'J_PASS')]) {
-                    ansiColor('xterm') {
-                        ansiblePlaybook(
+                    script {
+                        result = ansiblePlaybook(
                             playbook: "${WORKSPACE}/Jenkins_Maint/ansible/list.yml",
                             inventory: "${WORKSPACE}/Jenkins_Maint/ansible/inventory/hosts.yml",
                             credentialsId: 'jenkins_private_key',
@@ -54,7 +57,9 @@ pipeline {
                         )
                     }
                 }
+                echo "response:${result}"   
             }
+
         }
     }
 }
