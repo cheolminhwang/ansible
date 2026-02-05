@@ -32,7 +32,18 @@
 
     - name: Print found files
       debug:
-        msg: "Running playbook in Environment: {{ ls_result }}"
+        msg: "{{ ls_result }}"
       run_once: true
+
+    - name: Find files in directory
+      ansible.builtin.find:
+        paths: "{{ workspace }}/DirA/"
+        patterns: "*.ini"
+      register: found_files
+
+    - name: Write file names to JSON for Jenkins
+      ansible.builtin.copy:
+        content: "{{ found_files.files | map(attribute='path') | list | to_nice_json }}"
+        dest: "found_files.json"
 
 
