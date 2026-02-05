@@ -2,7 +2,7 @@ pipeline {
     agent {
 		node{
 			label 'built-in'
-			customWorkspace '/var/jenkins_home/workspace/sparse'
+			customWorkspace '/var/jenkins_home/workspace/ansible'
 		}
 	}
 
