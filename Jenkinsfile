@@ -6,7 +6,7 @@ pipeline {
 		}
 	}
     environment {       
-	   def result = ""
+	   def resulttxt = ""
     }
 
     stages {		 
@@ -43,7 +43,28 @@ pipeline {
             steps{
                 withCredentials([usernamePassword(credentialsId: 'jenkins', usernameVariable: 'J_USER', passwordVariable: 'J_PASS')]) {
                     script {
-                        result = ansiblePlaybook(
+                        def result = sh(
+                            script: """
+                            ANSIBLE_STDOUT_CALLBACK=json ansible-playbook \
+                            -i ${WORKSPACE}/Jenkins_Maint/ansible/inventory/hosts.yml \
+                            ${WORKSPACE}/Jenkins_Maint/ansible/list.yml \
+                            -e "env=${env.Environment}" -e "user=jenkins" \
+                            -e "token=${J_PASS}"  -e "workspace=/persistent"
+                            """,
+                            returnStdout: true
+                        ).trim()       
+                        def jsonString = '''
+                      {
+                        "key": "value",
+                        "status": "active"
+                      }
+                    '''
+                    // Parse the JSON string
+                    def jsonObject = readJSON text: jsonString
+                    
+                        echo "Playbook ran : ${result}"
+                        resulttxt = "${result}"
+                        /*ansiblePlaybook(
                             playbook: "${WORKSPACE}/Jenkins_Maint/ansible/list.yml",
                             inventory: "${WORKSPACE}/Jenkins_Maint/ansible/inventory/hosts.yml",
                             credentialsId: 'jenkins_private_key',
@@ -54,10 +75,10 @@ pipeline {
                                 token: "${J_PASS}",
                                 workspace: "/persistent"
                             ]
-                        )
+                        )*/
                     }
                 }
-                echo "response:${result}"   
+                echo "resulttxt:${resulttxt}"   
             }
 
         }
