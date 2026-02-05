@@ -1,0 +1,38 @@
+---
+- hosts: "{{ env }}"
+  gather_facts: no
+  remote_user: jenkins
+  #become: yes
+  #become_user: oracle
+  #become_method: sudo
+
+  vars_files:
+    - ./vault.yml
+  #vars:
+  #  backup_date: "{{ '%m%d%Y' | strftime }}"
+
+  tasks:
+
+    - name: Run task on the selected server
+      ansible.builtin.command: echo "Running on {{ ansible_host }}"
+      delegate_to: "{{ ansible_host }}"
+      run_once: true
+
+    - name: Print environment and url name
+      debug:
+        msg: "Running playbook in Environment: {{ env }}, url: {{ app_url }}, workspace: {{ workspace }}, token: {{ token }}"
+      run_once: true
+
+    - name: Find files
+      find:
+        paths: "{{ workspace }}/DirA/"
+        patterns: "*.ini "
+        file_type: file
+      register: ls_result
+
+    - name: Print found files
+      debug:
+        msg: "Running playbook in Environment: {{ ls_result.stdout }}, url: {{ ls_result.stderr }}"
+      run_once: true
+
+

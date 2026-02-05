@@ -7,6 +7,11 @@ pipeline {
 	}
 
     stages {		 
+		stage('Cleanup') {
+            steps {
+                cleanWs()  // Deletes workspace contents
+            }
+        }
 		stage('Checkout') {
 			steps {
 				checkout scm
@@ -16,12 +21,11 @@ pipeline {
 		stage('Git Clone of Siebel repository') {
 			steps {
 				script {
-					withCredentials([string(credentialsId: 'patMine', variable: 'TOKEN')]) {
-						//sh("git clone https://x-token-auth:${TOKEN}@github.com/cheolminhwang/ansible.git --branch br1")
+					withCredentials([string(credentialsId: 'patMine', variable: 'TOKEN')]) { 
 						def response = sh(
                             script: """
 								git clone --filter=blob:none --sparse https://x-token-auth:${TOKEN}@github.com/cheolminhwang/ansible.git --branch br1
-						    	cd sbl_code_repo
+						    	cd ansible
                                 git sparse-checkout set DirA                   
                             """,
                             returnStdout: true
@@ -32,11 +36,11 @@ pipeline {
 				}
 			}
 	  	}
-/*            steps{
-                withCredentials([usernamePassword(credentialsId: 'jenkins-username-password', usernameVariable: 'J_USER', passwordVariable: 'J_PASS')]) {
+            steps{
+                withCredentials([usernamePassword(credentialsId: 'jenkins', usernameVariable: 'J_USER', passwordVariable: 'J_PASS')]) {
                     ansiColor('xterm') {
                         ansiblePlaybook(
-                            playbook: "${WORKSPACE}/Jenkins_Maint/ansible/update.yml",
+                            playbook: "${WORKSPACE}/Jenkins_Maint/ansible/list.yml",
                             inventory: "${WORKSPACE}/Jenkins_Maint/ansible/inventory/hosts.yml",
                             credentialsId: 'jenkins_private_key',
                             colorized: true,
@@ -44,7 +48,7 @@ pipeline {
                                 env: "${env.Environment}",
                                 user: "jenkins",
                                 token: "${J_PASS}",
-                                workspace: "${WORKSPACE}"
+                                workspace: "/persistent"
                             ]
                         )
                     }
@@ -52,6 +56,6 @@ pipeline {
             }
 			
        }
-*/
+
     }
 }
