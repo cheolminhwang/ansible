@@ -1,0 +1,24 @@
+---
+- hosts: "{{ env }}"
+  gather_facts: no
+  remote_user: jenkins
+  #become: yes
+  #become_user: oracle
+  #become_method: sudo
+
+  vars_files:
+    - ./vault.yml
+  
+  tasks:
+
+    - name: Find files
+      find:
+        paths: "{{ workspace }}"
+        patterns: "*.ini"
+        file_type: file
+      register: ls_result
+
+    - name: Print found files
+      debug:
+        msg: "{{ ls_result }}"
+      run_once: true
