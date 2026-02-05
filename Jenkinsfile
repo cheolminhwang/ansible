@@ -20,7 +20,7 @@ pipeline {
 						//sh("git clone https://x-token-auth:${TOKEN}@github.com/cheolminhwang/ansible.git --branch br1")
 						def response = sh(
                             script: """
-								git clone --filter=blob:none --sparse https://x-token-auth:${TOKEN}@github.com/cheolminhwang/ansible.git --branch br1")
+								git clone --filter=blob:none --sparse https://x-token-auth:${TOKEN}@github.com/cheolminhwang/ansible.git --branch br1
 						    	cd sbl_code_repo
                                 git sparse-checkout set DirA                   
                             """,
