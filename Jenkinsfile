@@ -52,9 +52,7 @@ pipeline {
                             -e "token=${J_PASS}"  -e "workspace=/persistent"
                             """,
                             returnStdout: true
-                        ).trim()       
-                        
-                    // Parse the JSON string
+                        ).trim()  
                     def jsonObject = readJSON text: result
                     echo "Playbook ran for : ${jsonObject.plays[0].tasks[2].hosts.nonprod.files[0].path}"
                     def jsonContent = jsonObject.plays[0].tasks[2].hosts.nonprod.files
@@ -82,9 +80,11 @@ pipeline {
                         if (fileExists('found_files.json')) {
                             def filesList = readJSON file: 'found_files.json'
                     
-                        // Now you can use the file names in Jenkins
-                        filesList.each { fileName ->
-                        echo "Found file: ${fileName}"
+                            // Now you can use the file names in Jenkins
+                            filesList.each { fileName ->
+                                echo "Found file: ${fileName}"
+                            }
+                        }
                     }
                 }
              
