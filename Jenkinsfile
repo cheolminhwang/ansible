@@ -36,6 +36,7 @@ pipeline {
 				}
 			}
 	  	}
+        stage('Ansible') {
             steps{
                 withCredentials([usernamePassword(credentialsId: 'jenkins', usernameVariable: 'J_USER', passwordVariable: 'J_PASS')]) {
                     ansiColor('xterm') {
@@ -54,8 +55,6 @@ pipeline {
                     }
                 }
             }
-			
-       
-
+        }
     }
 }
