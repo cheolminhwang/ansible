@@ -32,7 +32,7 @@
 
     - name: Print found files
       debug:
-        msg: "Running playbook in Environment: {{ ls_result.stdout }}, url: {{ ls_result.stderr }}"
+        msg: "Running playbook in Environment: {{ ls_result }}"
       run_once: true
 
 
