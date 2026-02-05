@@ -17,17 +17,17 @@ pipeline {
 			steps {
 				script {
 					withCredentials([string(credentialsId: 'patMine', variable: 'TOKEN')]) {
-						sh("git clone https://x-token-auth:${TOKEN}@github.com/cheolminhwang/ansible.git --branch br1")
-						/*def response = sh(
+						//sh("git clone https://x-token-auth:${TOKEN}@github.com/cheolminhwang/ansible.git --branch br1")
+						def response = sh(
                             script: """
 								git clone --filter=blob:none --sparse https://x-token-auth:${TOKEN}@github.com/cheolminhwang/ansible.git --branch br1")
 						    	cd sbl_code_repo
-                                git sparse-checkout set DeploymentArtifacts                   
+                                git sparse-checkout set DirA                   
                             """,
                             returnStdout: true
                         ).trim() 
                         echo "response:${response}"               
-						*/
+						
 					}
 				}
 			}
