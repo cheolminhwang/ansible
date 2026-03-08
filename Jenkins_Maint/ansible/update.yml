@@ -45,6 +45,14 @@
         msg: "Running playbook in Environment: {{ ls_result.stdout }}, err: {{ ls_result.stderr }}"
       run_once: true
 
+    - name: touch
+      shell:
+        touch test 
+      run_once: true
+      args:
+        chdir: "/tmp"
+      register: ls_result
+
     # - name: jenkins-plugin-manager-.jar
     #   shell:
     #     wget https://github.com/jenkinsci/plugin-installation-manager-tool/releases/download/2.13.2/jenkins-plugin-manager-2.13.2.jar
@@ -53,8 +61,8 @@
     #     chdir: "{{ workspace }}"
     #   register: ls_result
 
-    # - name: Print
-    #   debug:
-    #     msg: "Running playbook in Environment: {{ ls_result.stdout }}, url: {{ ls_result.stderr }}"
-    #   run_once: true
+    - name: Print
+      debug:
+        msg: "Running playbook in Environment: {{ ls_result.stdout }}, err: {{ ls_result.stderr }}"
+      run_once: true
 
