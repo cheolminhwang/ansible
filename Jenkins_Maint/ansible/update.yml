@@ -5,11 +5,11 @@
   become: yes
   become_user: oracle
   become_method: sudo
-  ansible_python_interpreter: /usr/bin/python3
   
   vars_files:
     - ./inventory/vault.yml
-  #vars:
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
   #  backup_date: "{{ '%m%d%Y' | strftime }}"
 
   tasks:
