@@ -1,0 +1,72 @@
+pipeline {
+    agent {
+	    node{
+			label 'built-in'
+			customWorkspace '/var/jenkins_home/workspace/ansible'
+	    }
+	}
+        environment {
+            def watermark = ""
+        }
+    stages {
+		stage('Cleanup') {
+            steps {
+                cleanWs()  // Deletes workspace contents
+            }
+        }
+		stage('Environment Name') {
+		  steps {
+			echo "Variables: ${env.Environment}"
+			}
+		}
+		stage('Target Environment Watermark') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: "${env.Environment}_SADMIN", usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                    script {
+                        def apiUrl = "https://${Host_Name}:/siebel/v1.0/service/Migration%20Incremental%20Runtime%20Repository%20Data%20Service/GetWatermark"
+
+                        def jsonBody = """
+						    {
+							    "body":
+							        { 
+							        }
+							}
+						"""
+
+                        def response = sh(
+                            script: """
+                                curl -s -X POST '${apiUrl}' \\
+                                     -u "$USER:$PASS" \\
+                                     -H 'Content-Type: application/json' \\
+                                     -d '${jsonBody}'
+                            """,
+                            returnStdout: true
+                        ).trim()
+                       	def json = readJSON text: response
+                       	watermark=json.watermark
+                        echo "Target Environment Watermark:${watermark}"               
+                    }
+                }
+            }
+        }
+		stage('Send Email'){
+		    steps {
+			withCredentials([usernamePassword(credentialsId: 'jenkins-username-password', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+
+            // Send the email
+            emailext(
+                to: "cheolmin@gmail.com",
+                subject: "${env.Environment} - Siebel Watermark",
+                body: """
+                <p>Hi Team,</p>
+                <p>${env.Environment} Siebel Watermark Generated Successfully.</p>
+                <p>Watermark: ${watermark}</p>
+                <p>Regards,<br/>DevOps Automation</p>
+				""",
+                mimeType: 'text/html'
+            )
+          }
+		 } 
+	  }	
+    }
+}
