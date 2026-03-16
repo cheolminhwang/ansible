@@ -49,8 +49,10 @@ pipeline {
                     }
                 }
             }
+        }
+        stage('Git push') {
             steps{
-                withCredentials([usernamePassword(credentialsId: 'github_access_token_secret', variable: 'GITHUB_TOKEN')]) {
+                withCredentials([string(credentialsId: 'github_access_token_secret', variable: 'GITHUB_TOKEN')]) { 
                     ansiColor('xterm') {
                         ansiblePlaybook(
                             playbook: "${WORKSPACE}/Siebel_Watermark_Generation/ansible-scripts/file_copy.yml",
@@ -68,7 +70,6 @@ pipeline {
                     }
                 }
             }	
-
         }
 		stage('Send Email'){
 		    steps {
