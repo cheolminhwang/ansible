@@ -26,7 +26,7 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: "${env.Environment}_SADMIN", usernameVariable: 'USER', passwordVariable: 'PASS')]) {
                     script {
-                        def apiUrl = "https://${Host_Name}:4430/siebel/v1.0/service/migration/connection/${tmpname}/watermark"
+                        def apiUrl = "https://${Host_Name}:4430/siebel/v1.0/migration/connection/${tmpname}/watermark"
 
                         def jsonBody = """
 						    {
