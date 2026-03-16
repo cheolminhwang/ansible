@@ -30,7 +30,7 @@ pipeline {
 
                         def jsonBody = """
 						    {
-							    "fileName": "YourWatermarkFileName.txt"
+							    "fileName": "${env.File_Name}"
 							}
 						"""
 
