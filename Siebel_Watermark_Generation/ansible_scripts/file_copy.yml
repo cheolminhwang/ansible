@@ -70,18 +70,19 @@
       ansible.builtin.shell: |
         git add .
         git commit -m "Automated push from Jenkins/Ansible"
+        git push https://x-token-auth:{{ git_token }}@github.com/cheolminhwang/{{ repo_name }}.git {{ Branch_Name }}
       args:
         chdir: "{{ tmp_folder }}/migration/{{ repo_name }}/DeploymentArtifacts"
       ignore_errors: yes  # Ignore if there are no changes to commit
       environment:
         GIT_AUTHOR_NAME: "Jenkins Agent"
         GIT_AUTHOR_EMAIL: "jenkins@example.com"
-        GIT_COMMITTER_NAME: "Jenkins Agent"
-        GIT_COMMITTER_EMAIL: "jenkins@example.com"
+        GIT_COMMITTER_NAME: "JenkinsAgent"
+        GIT_COMMITTER_EMAIL: "Jenkins@example.com"
 
-    - name: Push to GitHub via HTTPS (using PAT)
-      ansible.builtin.shell: |
-        git push https://x-token-auth:{{ git_token }}@github.com/cheolminhwang/{{ repo_name }}.git {{ Branch_Name }}
-      args:
-        chdir: "{{ tmp_folder }}/migration/{{ repo_name }}/DeploymentArtifacts"
+    #- name: Push to GitHub via HTTPS (using PAT)
+   #   ansible.builtin.shell: |
+     #   git push https://x-token-auth:{{ git_token }}@github.com/cheolminhwang/{{ repo_name }}.git {{ Branch_Name }}
+     # args:
+     #   chdir: "{{ tmp_folder }}/migration/{{ repo_name }}/DeploymentArtifacts"
         
