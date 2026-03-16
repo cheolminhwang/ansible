@@ -39,11 +39,11 @@ pipeline {
 			}*/
 			steps {
 				script {
-					withCredentials([string(credentialsId: '701dcd5f-0010-41bb-ba6a-1c1b06dbcf21', variable: 'BITBUCKET_TOKEN')]) {
+					withCredentials([string(credentialsId: 'github_access_token_secret', variable: 'BITBUCKET_TOKEN')]) {
 						//sh("git clone https://x-token-auth:${BITBUCKET_TOKEN}@${GIT_FQDN}/dhs-kolea/sbl_code_repo.git --branch ${env.Branch_Name}")
 						def response = sh(
 							script: """
-								rm -rf ${Repo_Name}					
+								rm -rf ${Repo_Name}						 
 								git clone --filter=blob:none --sparse https://x-token-auth:${BITBUCKET_TOKEN}@github.com/cheolminhwang/${Repo_Name}.git --branch ${env.Branch_Name}
 								cd ${Repo_Name}
 								git sparse-checkout set DeploymentArtifacts                   
