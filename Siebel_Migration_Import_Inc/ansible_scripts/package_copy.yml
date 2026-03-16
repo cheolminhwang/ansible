@@ -3,7 +3,7 @@
   gather_facts: no
   remote_user: devopsadmin
   become: yes
-  become_user: oracle
+  become_user: siebel
   become_method: sudo
   
   vars_files:
