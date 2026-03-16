@@ -2,7 +2,7 @@ pipeline {
     agent {
 	    node{
 			label 'built-in'
-			customWorkspace '/var/jenkins_home/workspace/ansible'
+			customWorkspace '/var/jenkins_home/workspace/Siebel_Migration_Watermark_Generation'
 	    }
 	}
         environment {
