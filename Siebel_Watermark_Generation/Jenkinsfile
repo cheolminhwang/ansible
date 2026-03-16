@@ -24,7 +24,7 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: "${env.Environment}_SADMIN", usernameVariable: 'USER', passwordVariable: 'PASS')]) {
                     script {
-                        def apiUrl = "https://${Host_Name}:4430/siebel/v1.0/service/Migration%20Incremental%20Runtime%20Repository%20Data%20Service/GetWatermark"
+                        def apiUrl = "https://${Host_Name}:4430/siebel/v1.0/service/migration/connection/UAT11/watermark"
 
                         def jsonBody = """
 						    {
@@ -55,8 +55,8 @@ pipeline {
                 withCredentials([string(credentialsId: 'github_access_token_secret', variable: 'GITHUB_TOKEN')]) { 
                     ansiColor('xterm') {
                         ansiblePlaybook(
-                            playbook: "${WORKSPACE}/Siebel_Watermark_Generation/ansible-scripts/file_copy.yml",
-                            inventory: "${WORKSPACE}/Siebel_Watermark_Generation/ansible-scripts/inventory/${env.Environment}.yml",
+                            playbook: "${WORKSPACE}/ansible-scripts/file_copy.yml",
+                            inventory: "${WORKSPACE}/ansible-scripts/inventory/${env.Environment}.yml",
                             //credentialsId: 'jenkins_private_key',
                             colorized: true,
                             extraVars: [
