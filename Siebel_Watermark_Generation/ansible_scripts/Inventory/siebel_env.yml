@@ -1,6 +1,6 @@
 all:
   hosts:
-    LOCAL:
+    tsai:
       ansible_host: ol8slim
       ansible_connection: ssh  
 
