@@ -50,7 +50,6 @@
       run_once: true
 
     - name: Copy Export Folder from Siebel repository to siebel sfs folder
-      run_once: true
       copy:
         src: "{{ packageFile }}"
         dest: "{{ tmp_folder }}/migration"
