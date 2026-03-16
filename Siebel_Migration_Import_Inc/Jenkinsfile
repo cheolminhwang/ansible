@@ -59,8 +59,8 @@ pipeline {
 		 steps{
 			ansiColor('xterm') {
 				ansiblePlaybook(
-					playbook: "${WORKSPACE}/Siebel_Migration_Import/ansible_scripts/package_copy.yml",
-					inventory: "${WORKSPACE}/Siebel_Migration_Import/ansible_scripts/Inventory/${env.Environment}/${env.Environment}.yml",
+					playbook: "${WORKSPACE}/Siebel_Migration_Import_Inc/ansible_scripts/package_copy.yml",
+					inventory: "${WORKSPACE}/Siebel_Migration_Import_Inc/ansible_scripts/Inventory/${env.Environment}/${env.Environment}.yml",
 					colorized: true,
 					extraVars: [
 						env: "${env.Environment}",
