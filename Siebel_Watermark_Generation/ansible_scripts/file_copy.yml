@@ -46,7 +46,7 @@
         cd {{ tmp_folder }}
         rm -rf migration
         mkdir migration
-      when: export_tmp_dir.stat.isdir is defined and export_tmp_dir.stat.isdir
+      ##when: export_tmp_dir.stat.isdir is defined and export_tmp_dir.stat.isdir
       run_once: true
 
     - name: Copy Export Folder from Siebel repository to siebel sfs folder
