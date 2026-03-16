@@ -2,12 +2,13 @@ pipeline {
     agent {
 	    node{
 			label 'built-in'
-			//customWorkspace '/var/jenkins_home/workspace/Siebel_Migration_Watermark_Generation'
+			customWorkspace '/var/jenkins_home/workspace/Siebel_Migration_Watermark_Generation'
 	    }
 	}
         environment {
             def watermark = ""
             def Branch_Name = "master"
+            def tmpname="test"
         }
     stages {
 		//stage('Cleanup') {
@@ -24,7 +25,7 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: "${env.Environment}_SADMIN", usernameVariable: 'USER', passwordVariable: 'PASS')]) {
                     script {
-                        def apiUrl = "https://${Host_Name}:4430/siebel/v1.0/service/migration/connection/UAT11/watermark"
+                        def apiUrl = "https://${Host_Name}:4430/siebel/v1.0/service/migration/connection/${tmpname}/watermark"
 
                         def jsonBody = """
 						    {
