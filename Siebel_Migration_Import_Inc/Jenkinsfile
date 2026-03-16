@@ -153,7 +153,7 @@ pipeline {
 
 							def response = sh(
 								script: """
-									curl -s -X POST '${apiUrl}' \\
+									curl -s -X GET '${apiUrl}' \\
 										 -u "$USER:$PASS" \\
 										 -H 'Content-Type: application/json' \\
 										 -d '${jsonBody}'
@@ -164,11 +164,10 @@ pipeline {
 							status=json.status
 							echo "$json"
 								
-							if(!status.equalsIgnoreCase("running"))
-								{
+							
 									echo"Export completed with status:${status}"
 									 
-								} 					  	   
+												  	   
                     	}
 				  	}	
                 }

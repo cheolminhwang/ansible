@@ -7,6 +7,7 @@ pipeline {
 	}
         environment {
             def watermark = ""
+            def Branch_Name = "master"
         }
     stages {
 		stage('Cleanup') {
@@ -43,11 +44,31 @@ pipeline {
                             returnStdout: true
                         ).trim()
                        	def json = readJSON text: response
-                       	watermark=json.watermark
+                       	watermark=json.watermarkFile
                         echo "Target Environment Watermark:${watermark}"               
                     }
                 }
             }
+            steps{
+                withCredentials([usernamePassword(credentialsId: 'github_access_token_secret', variable: 'GITHUB_TOKEN')]) {
+                    ansiColor('xterm') {
+                        ansiblePlaybook(
+                            playbook: "${WORKSPACE}/Siebel_Watermark_Generation/ansible-scripts/file_copy.yml",
+                            inventory: "${WORKSPACE}/Siebel_Watermark_Generation/ansible-scripts/inventory/${env.Environment}.yml",
+                            //credentialsId: 'jenkins_private_key',
+                            colorized: true,
+                            extraVars: [
+                                env: "${env.Environment}",
+                                repo_name: "bpm",
+                                packageFile: "${watermark}",
+                                git_token: "${GITHUB_TOKEN}",
+                                Branch_Name: "${Branch_Name}"
+                            ]
+                        )
+                    }
+                }
+            }	
+
         }
 		stage('Send Email'){
 		    steps {

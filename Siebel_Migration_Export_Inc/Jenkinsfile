@@ -1,0 +1,279 @@
+pipeline {
+    agent {
+	 	node{
+			label 'built-in'
+			customWorkspace '/tmp/siebel_export'
+	 	}
+	}
+    environment {
+	   	def status = ""
+	   	def trackingid = ""
+	   	def Repository_Name="${env.Repository_Name}"
+	   	def fqdn="github.com/cheolminhwang"
+    }
+    stages {
+		stage('Cleanup') {
+            steps {
+                cleanWs()  // Deletes workspace contents
+            }
+        }
+		stage('Environment Name') {
+		  steps {
+			echo "Env_Variable: ${env.Environment}"
+			echo "RepoName_Variable: ${env.Repository_Name}"
+			echo "WaterMark_Variable:${watermark}"
+			echo "packageFilename:${env.packageFilename}"
+			echo "Branch_Name: ${env.Branch_Name}"
+			}
+		}
+		stage('Git Clone of Watermark file') {
+			steps {
+				script {
+					withCredentials([string(credentialsId: 'github_access_token_secret', variable: 'BITBUCKET_TOKEN')]) {
+						def response = sh(
+							script: """
+								rm -rf ${Repository_Name}						 
+								git clone --filter=blob:none --sparse https://x-token-auth:${BITBUCKET_TOKEN}@${fqdn}/${Repository_Name}.git --branch ${env.Branch_Name}
+								cd ${Repository_Name}
+								git sparse-checkout set DeploymentArtifacts                   
+							""",
+							returnStdout: true
+						).trim() 
+						echo "response:${response}"               
+					}
+				}
+			}
+	  	}
+        stage('Schema Export') {
+            steps {
+			   script {
+			   if (schema_changed == "Y"){
+                withCredentials([usernamePassword(credentialsId: "${env.Environment}_SADMIN", usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                    
+                        def apiUrl = "https://${Host_Name}:9112/siebel/v1.0/service/Migration%20Schema%20Service/Export"
+                        def jsonBody = """
+						{
+							 "body":
+							 { 
+							 "migrationid": "$migrationid"
+							}
+							}
+						"""
+
+                        def response = sh(
+                            script: """
+                                curl -s -X POST '${apiUrl}' \\
+                                     -u "$USER:$PASS" \\
+                                     -H 'Content-Type: application/json' \\
+                                     -d '${jsonBody}'
+                            """,
+                            returnStdout: true
+                        ).trim()
+                       	def json = readJSON text: response
+                       	schema_trackingid=json.trackingid
+                       	status=json.status
+                        echo "Schema Export Response tracking Id:${schema_trackingid}, Status:${status}"
+                        
+                        
+                    }
+                }
+			  else {
+			    echo "No schema change detected, skipping Schema Export"
+               }			  
+			  }	
+            }
+        }
+         stage('Schema Export Status') {
+            steps {
+			   script {
+			     if (schema_changed == "Y"){
+					withCredentials([usernamePassword(credentialsId: "${env.Environment}_SADMIN", usernameVariable: 'USER', passwordVariable: 'PASS')]) { 
+							while(true){
+									def apiUrl = "https://${Host_Name}:9112/siebel/v1.0/service/Migration%20Schema%20Service/GetStatus"
+									def jsonBody = """
+									{
+										 "body":
+										 { 
+										 "migrationid": "$migrationid",
+										 "trackingid": "$schema_trackingid",
+										 "getlog": "true"
+										}
+										}
+									"""
+
+									def response = sh(
+										script: """
+											curl -s -X POST '${apiUrl}' \\
+												 -u "$USER:$PASS" \\
+												 -H 'Content-Type: application/json' \\
+												 -d '${jsonBody}'
+										""",
+										returnStdout: true
+									).trim()
+									def json = readJSON text: response
+									status=json.status
+									echo "Schema Export Response:$json"
+									
+									sleep time: 120, unit: 'SECONDS'
+									
+									if(status!="running")
+									{
+										echo"Export completed with status:${status} and Schema Tracking Id:$schema_trackingid "
+										break
+									}
+						      }	
+							}
+					  }		
+                }
+            }
+        }
+		stage('Repository Export') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: "${env.Environment}_SADMIN", usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                    script {
+                        def apiUrl = "https://${Host_Name}:9112/siebel/v1.0/service/Migration%20Incremental%20Runtime%20Repository%20Data%20Service/Export"
+                        def jsonBody = """
+						{
+							 "body":
+							 { 
+							  "watermark":"${watermark}", 
+							  "migrationid":"$migrationid",
+							}
+							}
+						"""
+
+                        def response = sh(
+                            script: """
+                                curl -s -X POST '${apiUrl}' \\
+                                     -u "$USER:$PASS" \\
+                                     -H 'Content-Type: application/json' \\
+                                     -d '${jsonBody}'
+                            """,
+                            returnStdout: true
+                        ).trim()
+                       	def json = readJSON text: response
+						repository_trackingid=json.trackingid
+						status=json.status
+						echo "Repository Export Tracking Id:$repository_trackingid, Status:$status"
+                    }
+                }
+            }
+        }
+		stage('Repsitory Export Status') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: "${env.Environment}_SADMIN", usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                    script {
+						while(true){
+								def apiUrl = "https://${Host_Name}:9112/siebel/v1.0/service/Migration%20Incremental%20Runtime%20Repository%20Data%20Service/GetStatus"
+								def jsonBody = """
+								{
+									 "body":
+									 { 
+									 "migrationid": "$migrationid",
+									 "trackingid": "$repository_trackingid",
+									 "getlog": "true"
+									}
+									}
+								"""
+
+								def response = sh(
+									script: """
+										curl -s -X POST '${apiUrl}' \\
+											 -u "$USER:$PASS" \\
+											 -H 'Content-Type: application/json' \\
+											 -d '${jsonBody}'
+									""",
+									returnStdout: true
+								).trim()
+								def json = readJSON text: response
+								status=json.status
+								echo "$json"
+								
+							    if(status!="running")
+								{
+									echo"Export completed with status:${status}"
+									echo "Repository Tracking Id:$repository_trackingid"
+									break
+								}
+								sleep time: 120, unit: 'SECONDS'
+					  }	   
+                    }
+                }
+            }
+        }
+		stage('Incremental Seed Export') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: "${env.Environment}_SADMIN", usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                    script {
+                        def apiUrl = "https://${Host_Name}:9112/siebel/v1.0/service/Migration%20Incremental%20Application%20Workspace%20Data%20Service/Export"
+                        def jsonBody = """
+						{
+							 "body":
+							 { 
+							  "watermark":"${env.Target_Watermark}", 
+							  "migrationid":"$migrationid",
+							}
+							}
+						"""
+
+                        def response = sh(
+                            script: """
+                                curl -s -X POST '${apiUrl}' \\
+                                     -u "$USER:$PASS" \\
+                                     -H 'Content-Type: application/json' \\
+                                     -d '${jsonBody}'
+                            """,
+                            returnStdout: true
+                        ).trim()
+                       	def json = readJSON text: response
+						seed_trackingid=json.trackingid
+						status=json.status
+						echo "Repository Export Tracking Id:$seed_trackingid, Status:$status"
+                    }
+                }
+            }
+        }
+		stage('Seed Export Status') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: "${env.Environment}_SADMIN", usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                    script {
+						while(true){
+								def apiUrl = "https://${Host_Name}:9112/siebel/v1.0/service/Migration%20Incremental%20Application%20Workspace%20Data%20Service/GetStatus"
+								def jsonBody = """
+								{
+									 "body":
+									 { 
+									 "migrationid": "$migrationid",
+									 "trackingid": "$seed_trackingid",
+									 "getlog": "true"
+									}
+									}
+								"""
+
+								def response = sh(
+									script: """
+										curl -s -X POST '${apiUrl}' \\
+											 -u "$USER:$PASS" \\
+											 -H 'Content-Type: application/json' \\
+											 -d '${jsonBody}'
+									""",
+									returnStdout: true
+								).trim()
+								def json = readJSON text: response
+								status=json.status
+								echo "$json"
+								
+							    if(status!="running")
+								{
+									echo"Export completed with status:${status}"
+									echo "Seed Tracking Id:$seed_trackingid"
+									break
+								}
+								sleep time: 120, unit: 'SECONDS'
+					   }	   
+                    }
+                }
+            }
+        }
+    }
+}

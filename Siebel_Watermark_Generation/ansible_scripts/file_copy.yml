@@ -1,0 +1,79 @@
+---
+- hosts: "{{ env }}"
+  gather_facts: no
+  remote_user: devopsadmin
+  become: yes
+  become_user: siebel
+  become_method: sudo
+  
+  vars_files:
+    - ../../ansible_automation_password_vault.yml
+  
+  vars:
+    backup_date: "{{ '%m%d%Y' | strftime }}"
+    tmp_folder: "/tmp"
+    
+  tasks:
+
+#    - name: Select a random app server
+#      set_fact:
+#        selected_siebel_server_host: "{{ groups['App_Servers'] | random }}"
+        
+        
+#    - name: Run task on the selected app server
+#      ansible.builtin.command: echo "Running on {{ selected_siebel_server_host }}"
+#      delegate_to: "{{ selected_siebel_server_host }}"
+#      run_once: true
+    
+    - name: Print environment and branch name
+      debug:
+        msg: "Running playbook in Environment: {{ env }}, repo_name: {{ repo_name }}, Branch_Name: {{ Branch_Name }}, packageFilename: {{ packageFilename }}"
+      run_once: true  
+
+    - name: Check if source file exists
+      stat:
+        path: {{ packageFile }}
+      register: export_file
+      run_once: true
+
+    - name: Check if target tmp dir exists
+      stat:
+        path: "{{ tmp_folder }}/migration"
+      register: export_tmp_dir
+      run_once: true
+    - name: Removing existing tmp dir
+      shell: |
+        cd {{ tmp_folder }}
+        rm -rf migration
+        mkdir migration
+      when: export_tmp_dir.stat.isdir is defined and export_tmp_dir.stat.isdir
+      run_once: true
+
+    - name: Copy Export Folder from Siebel repository to siebel sfs folder
+      run_once: true
+      copy:
+        src: "{{ packageFilename }}"
+        dest: "{{ tmp_folder }}/migration"
+        force: yes
+        mode: '0777'
+
+    - name: Initialize repo if it doesn't exist
+      ansible.builtin.shell: git init
+      args:
+        chdir: "{{ tmp_folder }}/migration"
+        creates: "{{ tmp_folder }}/migration/.git"
+
+    - name: Add and Commit changes
+      ansible.builtin.shell: |
+        git add .
+        git commit -m "Automated push from Jenkins/Ansible"
+      args:
+        chdir: "{{ tmp_folder }}/migration"
+      ignore_errors: yes  # Ignore if there are no changes to commit
+
+    - name: Push to GitHub via HTTPS (using PAT)
+      ansible.builtin.shell: |
+        git push https://x-token-auth:{{ git_token }}@github.com/cheolmin.hwang/{{ repo_name }}.git {Branch_Name}
+      args:
+        chdir: "{{ tmp_folder }}/migration"
+        
