@@ -31,13 +31,13 @@
 
     - name: Check if export file exists
       stat:
-        path: /u01/sfs/migration/{{ packageFilename }}
+        path: /sfs/migration/{{ packageFilename }}
       register: export_file
       run_once: true
       
     - name: Removing existing export file with same name
       shell: |
-        cd /u01/sfs/migration
+        cd /sfs/migration
         rm -f {{ packageFilename }}
       when: export_file.stat.exists
       run_once: true
@@ -46,7 +46,7 @@
       run_once: true
       copy:
         src: "{{ workspace }}/{{ Repo_Name }}/DeploymentArtifacts/{{ packageFilename }}"
-        dest: /u01/sfs/migration
+        dest: /sfs/migration
         force: yes
         mode: '0777'
         
