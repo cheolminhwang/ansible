@@ -54,9 +54,12 @@
 
     - name: Clone
       ansible.builtin.shell: |
-        git clone https://x-token-auth:{{ git_token }}@github.com/cheolminhwang/{{ repo_name }}.git --branch {{ Branch_Name }}
-      args:
-        chdir: "{{ tmp_folder }}/migration"
+        cd {{ tmp_folder }}/migration
+        git clone --filter=blob:none --sparse https://x-token-auth:{{ git_token }}@github.com/cheolminhwang/{{ repo_name }}.git --branch {{ Branch_Name }}
+        cd {{ repo_name }}
+        git sparse-checkout set DeploymentArtifacts
+      #args:
+      #  chdir: "{{ tmp_folder }}/migration"
 
     - name: Copy Export Folder from Siebel repository to siebel sfs folder
       copy:
