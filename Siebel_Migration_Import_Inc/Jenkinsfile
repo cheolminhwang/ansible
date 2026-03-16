@@ -2,7 +2,7 @@ pipeline {
     agent {
 	 	node{
 			label 'built-in'
-			customWorkspace '/stage/asi/automations/siebel_import'
+			customWorkspace '/tmp/siebel_import'
 	 	}
 	}
     environment {
