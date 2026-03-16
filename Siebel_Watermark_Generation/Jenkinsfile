@@ -10,11 +10,11 @@ pipeline {
             def Branch_Name = "master"
         }
     stages {
-		stage('Cleanup') {
-            steps {
-                cleanWs()  // Deletes workspace contents
-            }
-        }
+		//stage('Cleanup') {
+        //    steps {
+        //        cleanWs()  // Deletes workspace contents
+        //    }
+        //}
 		stage('Environment Name') {
 		  steps {
 			echo "Variables: ${env.Environment}"
