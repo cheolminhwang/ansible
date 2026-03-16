@@ -56,7 +56,7 @@ pipeline {
                     ansiColor('xterm') {
                         ansiblePlaybook(
                             playbook: "${WORKSPACE}/Siebel_Watermark_Generation/ansible_scripts/file_copy.yml",
-                            inventory: "${WORKSPACE}/Siebel_Watermark_Generation/ansible_scripts/inventory/siebel_env.yml",
+                            inventory: "${WORKSPACE}/Siebel_Watermark_Generation/ansible_scripts/Inventory/siebel_env.yml",
                             //credentialsId: 'jenkins_private_key',
                             colorized: true,
                             extraVars: [
