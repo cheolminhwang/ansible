@@ -27,7 +27,7 @@
     
     - name: Print environment and branch name
       debug:
-        msg: "Running playbook in Environment: {{ env }}, repo_name: {{ repo_name }}, Branch_Name: {{ Branch_Name }}, packageFilename: {{ packageFilename }}"
+        msg: "Running playbook in Environment: {{ env }}, repo_name: {{ repo_name }}, Branch_Name: {{ Branch_Name }}, packageFile: {{ packageFile }}"
       run_once: true  
 
     - name: Check if source file exists
@@ -52,7 +52,7 @@
     - name: Copy Export Folder from Siebel repository to siebel sfs folder
       run_once: true
       copy:
-        src: "{{ packageFilename }}"
+        src: "{{ packageFile }}"
         dest: "{{ tmp_folder }}/migration"
         force: yes
         mode: '0777'
