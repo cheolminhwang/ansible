@@ -61,7 +61,7 @@
     - name: Copy Export Folder from Siebel repository to siebel sfs folder
       copy:
         src: "{{ packageFile }}"
-        dest: "{{ tmp_folder }}/migration"
+        dest: "{{ tmp_folder }}/migration/{{ repo_name }}/DeploymentArtifacts/{{ packageFile | basename }}"
         force: yes
         mode: '0777'
         remote_src: true
@@ -71,7 +71,7 @@
         git add .
         git commit -m "Automated push from Jenkins/Ansible"
       args:
-        chdir: "{{ tmp_folder }}/migration"
+        chdir: "{{ tmp_folder }}/migration/{{ repo_name }}/DeploymentArtifacts"
       ignore_errors: yes  # Ignore if there are no changes to commit
      # environment:
      #   GIT_AUTHOR_NAME: "Jenkins Agent"
@@ -83,5 +83,5 @@
       ansible.builtin.shell: |
         git push https://x-token-auth:{{ git_token }}@github.com/cheolminhwang/{{ repo_name }}.git {{ Branch_Name }}
       args:
-        chdir: "{{ tmp_folder }}/migration"
+        chdir: "{{ tmp_folder }}/migration/{{ repo_name }}/DeploymentArtifacts"
         
