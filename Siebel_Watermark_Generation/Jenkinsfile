@@ -30,9 +30,7 @@ pipeline {
 
                         def jsonBody = """
 						    {
-							    "body":
-							        { 
-							        }
+							    "fileName": "YourWatermarkFileName.txt"
 							}
 						"""
 
@@ -57,8 +55,8 @@ pipeline {
                 withCredentials([string(credentialsId: 'github_access_token_secret', variable: 'GITHUB_TOKEN')]) { 
                     ansiColor('xterm') {
                         ansiblePlaybook(
-                            playbook: "${WORKSPACE}/Siebel_Watermark_Generation/ansible-scripts/file_copy.yml",
-                            inventory: "${WORKSPACE}/ansible-scripts/inventory/${env.Environment}.yml",
+                            playbook: "${WORKSPACE}/Siebel_Watermark_Generation/ansible_scripts/file_copy.yml",
+                            inventory: "${WORKSPACE}/Siebel_Watermark_Generation/ansible_scripts/inventory/${env.Environment}.yml",
                             //credentialsId: 'jenkins_private_key',
                             colorized: true,
                             extraVars: [
