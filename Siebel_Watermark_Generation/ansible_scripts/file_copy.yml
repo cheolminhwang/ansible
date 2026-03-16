@@ -32,7 +32,7 @@
 
     - name: Check if source file exists
       stat:
-        path: {{ packageFile }}
+        path: "{{ packageFile }}"
       register: export_file
       run_once: true
 
