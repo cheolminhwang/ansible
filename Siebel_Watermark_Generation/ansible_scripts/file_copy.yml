@@ -55,6 +55,7 @@
         dest: "{{ tmp_folder }}/migration"
         force: yes
         mode: '0777'
+        remote_src: true
 
     - name: Initialize repo if it doesn't exist
       ansible.builtin.shell: git init
