@@ -19,7 +19,7 @@ pipeline {
         }
 		stage('Environment Name') {
 		  	steps {
-				echo "Variables: ${env.Environment},${migrationid},${env.Version},${env.Repository_Name}"
+				echo "Variables: ${env.Environment},${Branch_Name},${env.packageFilename}"
 			}
 		}
 		
