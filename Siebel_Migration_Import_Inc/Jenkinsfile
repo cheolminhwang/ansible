@@ -167,7 +167,7 @@ pipeline {
 							if(!status.equalsIgnoreCase("running"))
 								{
 									echo"Export completed with status:${status}"
-									break;
+									 
 								} 					  	   
                     	}
 				  	}	
