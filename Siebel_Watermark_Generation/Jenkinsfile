@@ -11,11 +11,12 @@ pipeline {
             def tmpname="test"
         }
     stages {
-		//stage('Cleanup') {
-        //    steps {
-        //        cleanWs()  // Deletes workspace contents
-        //    }
-        //}
+		stage('Checkout devops automation repository') {
+			steps{			
+				checkout scm			
+			}
+	    }
+
 		stage('Environment Name') {
 		  steps {
 			echo "Variables: ${env.Environment}"
