@@ -7,7 +7,7 @@ pipeline {
 	}
     environment {
        	def Ansible_Host_Name = "app_server_01"
-	   	def Repo_Name = "sbl_code_repo"
+	   	def Repo_Name = "bpm"
 		def Mig_Plan_Name = "IRR_async_import"
 	   	def History_ID = ""
     }
