@@ -1,0 +1,52 @@
+---
+- hosts: "{{ env }}"
+  gather_facts: no
+  remote_user: devopsadmin
+  become: yes
+  become_user: oracle
+  become_method: sudo
+  
+  vars_files:
+    - ../../ansible_automation_password_vault.yml
+  
+  vars:
+    backup_date: "{{ '%m%d%Y' | strftime }}"
+    
+  tasks:
+
+    - name: Select a random app server
+      set_fact:
+        selected_siebel_server_host: "{{ groups['App_Servers'] | random }}"
+        
+        
+    - name: Run task on the selected app server
+      ansible.builtin.command: echo "Running on {{ selected_siebel_server_host }}"
+      delegate_to: "{{ selected_siebel_server_host }}"
+      run_once: true
+    
+    - name: Print environment and branch name
+      debug:
+        msg: "Running playbook in Environment: {{ env }}, Branch_Name: {{ Branch_Name }}, packageFilename: {{ packageFilename }}"
+      run_once: true  
+
+    - name: Check if export file exists
+      stat:
+        path: /u01/sfs/migration/{{ packageFilename }}
+      register: export_file
+      run_once: true
+      
+    - name: Removing existing export file with same name
+      shell: |
+        cd /u01/sfs/migration
+        rm -f {{ packageFilename }}
+      when: export_file.stat.exists
+      run_once: true
+
+    - name: Copy Export Folder from Siebel repository to siebel sfs folder
+      run_once: true
+      copy:
+        src: "{{ workspace }}/{{ Repo_Name }}/DeploymentArtifacts/{{ packageFilename }}"
+        dest: /u01/sfs/migration
+        force: yes
+        mode: '0777'
+        

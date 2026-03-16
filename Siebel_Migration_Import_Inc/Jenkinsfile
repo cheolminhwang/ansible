@@ -1,0 +1,178 @@
+pipeline {
+    agent {
+	 	node{
+			label 'built-in'
+			customWorkspace '/stage/asi/automations/siebel_import'
+	 	}
+	}
+    environment {
+       	def Ansible_Host_Name = "app_server_01"
+	   	def Repo_Name = "sbl_code_repo"
+		def Mig_Plan_Name = "IRR_async_import"
+	   	def History_ID = ""
+    }
+    stages {
+		stage('Cleanup') {
+            steps {
+                cleanWs()  // Deletes workspace contents
+            }
+        }
+		stage('Environment Name') {
+		  	steps {
+				echo "Variables: ${env.Environment},${migrationid},${env.Version},${env.Repository_Name}"
+			}
+		}
+		
+		stage('Checkout devops automation repository') {
+			steps{			
+				checkout scm			
+			}
+	    }
+
+		stage('Git Clone of Siebel repository') {
+			/*steps {
+				script {
+					withCredentials([string(credentialsId: 'kolea_bitbucket_access_token_secret', variable: 'BITBUCKET_TOKEN')]) {
+						sh("git clone https://x-token-auth:${BITBUCKET_TOKEN}@${MY_GIT_FQDN}/dhs-kolea/${env.Repository_Name}.git --branch main")
+					}
+				}
+			}*/
+			steps {
+				script {
+					withCredentials([string(credentialsId: 'kolea_bitbucket_access_token_secret', variable: 'BITBUCKET_TOKEN')]) {
+						//sh("git clone https://x-token-auth:${BITBUCKET_TOKEN}@${GIT_FQDN}/dhs-kolea/sbl_code_repo.git --branch ${env.Branch_Name}")
+						def response = sh(
+							script: """
+								rm -rf ${Repo_Name}
+								git clone --filter=blob:none --sparse https://x-token-auth:${BITBUCKET_TOKEN}@${GIT_FQDN}/dhs-kolea/${Repo_Name}.git --branch ${env.Branch_Name}
+								cd ${Repo_Name}
+								git sparse-checkout set DeploymentArtifacts                   
+							""",
+							returnStdout: true
+						).trim() 
+						echo "response:${response}"               
+					}
+				}
+			}
+	  	}
+		stage('Running Ansible to copy export zipfile') {
+		 steps{
+			ansiColor('xterm') {
+				ansiblePlaybook(
+					playbook: "${WORKSPACE}/Siebel_Migration_Import/ansible_scripts/package_copy.yml",
+					inventory: "${WORKSPACE}/Siebel_Migration_Import/ansible_scripts/Inventory/${env.Environment}/${env.Environment}.yml",
+					colorized: true,
+					extraVars: [
+						env: "${env.Environment}",
+						Branch_Name: "${env.Branch_Name}",
+						Repo_Name: "${Repo_Name}",
+						packageFilename: "${env.packageFilename}",
+						workspace: "${WORKSPACE}"
+					]
+				)
+			}
+		  }	
+		}
+		stage('Repository Import with migration plan') {
+            steps {
+			    script{				
+					withCredentials([usernamePassword(credentialsId: "${env.Environment}_SADMIN", usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+						def apiUrl = "https://${Host_Name}:4330/siebel/v1.0/migration/execution/${Mig_Plan_Name}"
+						def jsonBody = """
+							{
+								"schemaPassword": "OPKNuIA/pwISiUu2zjy9/wXjFQAA",
+								"pwdPreEncrypted":"true",
+								"packageFilename": "${env.packageFilename}"
+							}
+							"""
+							// schemaPassword  <== siebsrvr/bin/encryptstring SIEBEL_PASSWORD
+
+						def response = sh(
+							script: """
+								curl -s -X POST '${apiUrl}' \\
+										-u "$USER:$PASS" \\
+										-H 'Content-Type: application/json' \\
+										-d '${jsonBody}'
+							""",
+							returnStdout: true
+						).trim()
+						def json = readJSON text: response
+						repository_trackingid=json.trackingid
+						${History_ID}=json.id
+						echo "Response:${json}"
+					}									
+			  	}
+            }
+        }
+		stage('Repository Import Get Status'){
+            steps {
+			   	script{
+			   		if(${History_ID}){
+                		withCredentials([usernamePassword(credentialsId: "${env.Environment}_SADMIN", usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+							while(true){
+								def apiUrl = "https://${Host_Name}:4330/siebel/v1.0/migration/execution/${Mig_Plan_Name}"
+								def jsonBody = """
+								{ }
+								"""
+
+								def response = sh(
+									script: """
+										curl -s -X POST '${apiUrl}' \\
+											 -u "$USER:$PASS" \\
+											 -H 'Content-Type: application/json' \\
+											 -d '${jsonBody}'
+									""",
+									returnStdout: true
+								).trim()
+								def json = readJSON text: response
+								status=json.status
+								echo "$json"
+								
+							    if(!status.equalsIgnoreCase("running"))
+								{
+									echo"Export completed with status:${status}"
+									break;
+								}
+								sleep time: 300, unit: 'SECONDS'
+					  		}	   
+                    	}
+				  	}
+                }
+            }
+        }
+		stage('Repository Import Status at History'){
+            steps {
+			   	script{
+			   		if(${History_ID}){
+                		withCredentials([usernamePassword(credentialsId: "${env.Environment}_SADMIN", usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+						
+							def apiUrl = "https://${Host_Name}:4330/siebel/v1.0/migration/history/${History_ID}"
+							def jsonBody = """
+								{ }
+								"""
+
+							def response = sh(
+								script: """
+									curl -s -X POST '${apiUrl}' \\
+										 -u "$USER:$PASS" \\
+										 -H 'Content-Type: application/json' \\
+										 -d '${jsonBody}'
+								""",
+								returnStdout: true
+							).trim()
+							def json = readJSON text: response
+							status=json.status
+							echo "$json"
+								
+							if(!status.equalsIgnoreCase("running"))
+								{
+									echo"Export completed with status:${status}"
+									break;
+								} 					  	   
+                    	}
+				  	}	
+                }
+            }
+        }
+    }
+}
