@@ -18,7 +18,7 @@
     
     - name: Print environment and branch name
       debug:
-        msg: "Running playbook in Environment: {{ env }}, repo_name: {{ repo_name }}, Branch_Name: {{ Branch_Name }}, packageFile: {{ packageFile }}"
+        msg: "Running playbook in Environment: {{ env }}, repo_name: {{ repo_name }}, Branch_Name: {{ Branch_Name }}, watermark: {{ watermark }}"
       run_once: true  
 
     - name: Check if target tmp dir exists
