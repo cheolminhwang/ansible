@@ -23,19 +23,13 @@ pipeline {
 			}
 		}
 		
-		stage('Checkout devops automation repository') {
-			steps{			
-				checkout scm			
-			}
-	    }
-
         stage('Git pull and place to sfs folder') {
             steps{
                 withCredentials([string(credentialsId: 'github_access_token_secret', variable: 'GITHUB_TOKEN')]) { 
                     ansiColor('xterm') {
                         ansiblePlaybook(
-                            playbook: "${WORKSPACE}/Siebel_Migration_Export_Inc/ansible_scripts/package_copy.yml",
-                            inventory: "${WORKSPACE}/Siebel_Migration_Export_Inc/ansible_scripts/Inventory/siebel_env.yml",
+                            playbook: "${WORKSPACE}/Siebel_Migration_Import_Inc/ansible_scripts/package_copy.yml",
+                            inventory: "${WORKSPACE}/Siebel_Migration_Import_Inc/ansible_scripts/Inventory/siebel_env.yml",
                             colorized: true,
                             extraVars: [
                                 env: "${env.Environment}",
