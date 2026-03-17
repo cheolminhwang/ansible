@@ -95,6 +95,7 @@ pipeline {
                             returnStdout: true
                         ).trim()
                        	def json = readJSON text: response
+						echo "json: ${json}"
                        	//trackingid=json.trackingid
                        	status=json.status
 						History_ID=json.id
