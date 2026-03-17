@@ -91,13 +91,14 @@ pipeline {
                                 curl --location --insecure --request POST '${apiUrl}' \\
                                      -u "$USER:$PASS" \\
                                      -H 'Content-Type: application/json' \\
-                                     -d '${jsonBody}'  
+                                     -d '${jsonBody}'  2>&1
                             """,
                             returnStdout: true
                         ).trim()
 						try {
 							if (response) {
 								def json = readJSON text: response
+								echo "Migration API Response: ${json}"
 								trackingid=json.trackingid
 								status=json.status
 								History_ID=json.id
