@@ -9,7 +9,7 @@ pipeline {
             def error_message = ""
             def watermark = ""
             def Branch_Name = "master"
-            def tmpname="test"
+            def tmpname="SBL"
         }
     stages {
 		stage('Checkout devops automation repository') {
@@ -20,14 +20,14 @@ pipeline {
 
 		stage('Environment Name') {
 		  steps {
-			echo "Variables: ${env.Environment}"
+			echo "Variables: ${env.Environment} ${env.Host_Name} ${env.File_Name}"
 			}
 		}
 		stage('Target Environment Watermark') {
             steps {
                 withCredentials([usernamePassword(credentialsId: "${env.Environment}_SADMIN", usernameVariable: 'USER', passwordVariable: 'PASS')]) {
                     script {
-                        def apiUrl = "https://${Host_Name}:4430/siebel/v1.0/migration/connection/${tmpname}/watermark"
+                        def apiUrl = "https://${env.Host_Name}:4430/siebel/v1.0/migration/connection/${tmpname}/watermark"
 
                         def jsonBody = """
 						    {
