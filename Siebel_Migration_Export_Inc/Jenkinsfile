@@ -91,7 +91,7 @@ pipeline {
                                 curl -s -X POST '${apiUrl}' \\
                                      -u "$USER:$PASS" \\
                                      -H 'Content-Type: application/json' \\
-                                     -d '${jsonBody}' || true
+                                     -d '${jsonBody}' 2>&1
                             """,
                             returnStdout: true
                         ).trim()
