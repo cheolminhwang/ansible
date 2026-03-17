@@ -77,7 +77,7 @@ pipeline {
 			   	script {
                 	withCredentials([usernamePassword(credentialsId: "${env.Environment}_SADMIN", usernameVariable: 'USER', passwordVariable: 'PASS')]) {
                     
-                        def apiUrl = "https://${Host_Name}:9112/siebel/v1.0/migration/execution/${env.Mig_Plan_Name}"
+                        def apiUrl = "https://${Host_Name}:4430/siebel/v1.0/migration/execution/${env.Mig_Plan_Name}"
                         def jsonBody = """
 						{
     						"packageFilename": "${env.Environment}_${env.packageFilename}",
@@ -108,7 +108,7 @@ pipeline {
 			   	script {
                 	withCredentials([usernamePassword(credentialsId: "${env.Environment}_SADMIN", usernameVariable: 'USER', passwordVariable: 'PASS')]) {
 						while(true){
-							def apiUrl = "https://${Host_Name}:9112/siebel/v1.0/migration/execution/${env.Mig_Plan_Name}"
+							def apiUrl = "https://${Host_Name}:4430/siebel/v1.0/migration/execution/${env.Mig_Plan_Name}"
 							def jsonBody = """
 							{		
 							}
@@ -146,7 +146,7 @@ pipeline {
 			   		if(History_ID){
                 		withCredentials([usernamePassword(credentialsId: "${env.Environment}_SADMIN", usernameVariable: 'USER', passwordVariable: 'PASS')]) {
 						
-							def apiUrl = "https://${Host_Name}:4330/siebel/v1.0/migration/history/${History_ID}"
+							def apiUrl = "https://${Host_Name}:4430/siebel/v1.0/migration/history/${History_ID}"
 							def jsonBody = """
 								{ }
 								"""
