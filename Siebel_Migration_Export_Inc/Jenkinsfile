@@ -9,6 +9,7 @@ pipeline {
 	   	def status = ""
 	   	def History_ID = ""
 	   	def trackingid = ""
+		def error_message = ""
 	   	//def Repository_Name="${env.Repository_Name}"
 	   	def fqdn="github.com/cheolminhwang"
     }
@@ -140,10 +141,10 @@ pipeline {
 								if (response) {
 									echo "Migration API Response: ${response}"
 									def json = readJSON text: response
-									//trackingid=json.trackingid
+									error_message=json.error
 									status=json.status
 									 
-									echo "Schema Export Response ${History_ID}:   Status:${status}"
+									echo "Schema Export Response ${History_ID}: err:${error_message}  Status:${status}"
 								} else {
 									echo "No response received from migration API."
 									error "No response received from migration API."
@@ -178,16 +179,30 @@ pipeline {
 
 							def response = sh(
 								script: """
-									curl -s -X GET '${apiUrl}' \\
+									curl -s --location --insecure --request GET '${apiUrl}' \\
 										 -u "$USER:$PASS" \\
 										 -H 'Content-Type: application/json' \\
 										 -d '${jsonBody}'
 								""",
 								returnStdout: true
 							).trim()
-							def json = readJSON text: response
-							status=json.status
-							echo "$json"
+							try {
+								if (response) {
+									echo "Migration API Response: ${response}"
+									def json = readJSON text: response
+									//trackingid=json.trackingid
+									status=json.status
+									 
+									echo "Schema Export Response ${History_ID}:   Status:${status}"
+								} else {
+									echo "No response received from migration API."
+									error "No response received from migration API."
+								}
+								
+							} catch (Exception e) {
+								echo "Failed to parse migration response: ${e.message}"
+								//error "Failed to parse migration response: ${e.message}"
+							}	
 								
 							
 									echo"Export completed with status:${status}"
