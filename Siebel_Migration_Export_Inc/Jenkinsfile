@@ -102,6 +102,7 @@ pipeline {
 							History_ID=json.id
 							echo "Schema Export Response ${History_ID}: / Status:${status}"
 						} catch (Exception e) {
+							echo "Failed to parse migration response: ${e.message}"
 							error "Failed to parse migration response: ${e.message}"
 						}	
                     }              		  
