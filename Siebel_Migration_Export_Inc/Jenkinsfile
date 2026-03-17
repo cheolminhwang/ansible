@@ -129,7 +129,7 @@ pipeline {
 
 							def response = sh(
 								script: """
-									curl -s -X GET '${apiUrl}' \\
+									curl -s --location --insecure --request GET '${apiUrl}' \\
 										-u "$USER:$PASS" \\
 										-H 'Content-Type: application/json' \\
 										-d '${jsonBody}'
