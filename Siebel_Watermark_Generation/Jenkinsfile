@@ -37,10 +37,10 @@ pipeline {
 
                         def response = sh(
                             script: """
-                                curl --location --insecure --request POST '${apiUrl}' \\
-                                     -u "$USER:$PASS" \\
-                                     -H 'Content-Type: application/json' \\
-                                     -d '${jsonBody}' 2>/tmp/curl_error.log
+                                curl --silent --location --insecure --request POST '${apiUrl}' \\
+                                     --user "$USER:$PASS" \\
+                                     --header 'Content-Type: application/json' \\
+                                     --data '${jsonBody}'
                             """,
                             returnStdout: true
                         ).trim()
@@ -54,8 +54,6 @@ pipeline {
 									echo "Schema Export Response ${History_ID}: err:${error_message},  Watermark:${watermark}"
 							} else {
 								echo "No response received from migration API."
-                                def tmperr = readFile('/tmp/curl_error.log').trim()
-                                echo "Curl error: ${tmperr}"
 								error "No response received from migration API."
 							}
 						} catch (Exception e) {
