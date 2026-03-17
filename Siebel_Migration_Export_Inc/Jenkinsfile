@@ -100,15 +100,14 @@ pipeline {
 							if (response) {
 								echo "Migration API Response: ${response}"
 								def json = readJSON text: response
-								//trackingid=json.trackingid
+								error_message=json.error
 								status=json.status
 								History_ID=json.id
-								echo "Schema Export Response ${History_ID}:   Status:${status}"
+									echo "Schema Export Response ${History_ID}: err:${error_message},  Status:${status}"
 							} else {
 								echo "No response received from migration API."
 								error "No response received from migration API."
 							}
-							 
 						} catch (Exception e) {
 							echo "Failed to parse migration response: ${e.message}"
 							error "Failed to parse migration response: ${e.message}"
@@ -144,7 +143,7 @@ pipeline {
 									error_message=json.error
 									status=json.status
 									 
-									echo "Schema Export Response ${History_ID}: err:${error_message}  Status:${status}"
+									echo "Schema Export Response ${History_ID}: err:${error_message},  Status:${status}"
 								} else {
 									echo "No response received from migration API."
 									error "No response received from migration API."
@@ -190,10 +189,10 @@ pipeline {
 								if (response) {
 									echo "Migration API Response: ${response}"
 									def json = readJSON text: response
-									//trackingid=json.trackingid
+									error_message=json.error
 									status=json.status
 									 
-									echo "Schema Export Response ${History_ID}:   Status:${status}"
+									echo "Schema Export Response ${History_ID}: err:${error_message},  Status:${status}"
 								} else {
 									echo "No response received from migration API."
 									error "No response received from migration API."

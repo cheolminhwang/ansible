@@ -1,7 +1,7 @@
 all:
   hosts:
     tsai:
-      ansible_host: ol8slim
+      ansible_host: slim8
       ansible_connection: ssh  
 
     PSD11:

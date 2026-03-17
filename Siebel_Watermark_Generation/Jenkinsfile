@@ -6,6 +6,7 @@ pipeline {
 	    }
 	}
         environment {
+            def error_message = ""
             def watermark = ""
             def Branch_Name = "master"
             def tmpname="test"
@@ -43,9 +44,22 @@ pipeline {
                             """,
                             returnStdout: true
                         ).trim()
-                       	def json = readJSON text: response
-                       	watermark=json.watermarkFile
-                        echo "Target Environment Watermark:${watermark}"               
+						try {
+							if (response) {
+								echo "Migration API Response: ${response}"
+								def json = readJSON text: response
+								error_message=json.error
+								watermark=json.watermarkFile
+								History_ID=json.id
+									echo "Schema Export Response ${History_ID}: err:${error_message},  Watermark:${watermark}"
+							} else {
+								echo "No response received from migration API."
+								error "No response received from migration API."
+							}
+						} catch (Exception e) {
+							echo "Failed to parse migration response: ${e.message}"
+							error "Failed to parse migration response: ${e.message}"
+						}	            
                     }
                 }
             }
