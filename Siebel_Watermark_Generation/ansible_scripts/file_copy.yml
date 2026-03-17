@@ -64,7 +64,7 @@
     - name: Copy Export Folder from Siebel repository to siebel sfs folder
       copy:
         src: "{{ packageFile }}"
-        dest: "{{ tmp_folder }}/migration/{{ repo_name }}/DeploymentArtifacts/{{ packageFile | basename }}"
+        dest: "{{ tmp_folder }}/migration/{{ repo_name }}/DeploymentArtifacts/{{ env }}_{{ packageFile | basename }}"
         force: yes
         mode: '0777'
         remote_src: true

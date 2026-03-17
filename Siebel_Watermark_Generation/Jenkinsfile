@@ -46,7 +46,7 @@ pipeline {
                         ).trim()
 						try {
 							if (response) {
-								echo "Migration API Response: ${response}"
+								//echo "Migration API Response: ${response}"
 								def json = readJSON text: response
 								error_message=json.error
 								watermark=json.watermarkFile
