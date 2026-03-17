@@ -6,47 +6,41 @@
   become_user: siebel
   become_method: sudo
   
-  vars_files:
-    - ../../ansible_automation_password_vault.yml
+  #vars_files:
+  #  - ../../ansible_automation_password_vault.yml
   
   vars:
     backup_date: "{{ '%m%d%Y' | strftime }}"
-    
+    tmp_folder: "/tmp"
+    sfs_folder: "/sfs/migration" 
+
   tasks:
 
-    - name: Select a random app server
-      set_fact:
-        selected_siebel_server_host: "{{ groups['App_Servers'] | random }}"
-        
-        
-    - name: Run task on the selected app server
-      ansible.builtin.command: echo "Running on {{ selected_siebel_server_host }}"
-      delegate_to: "{{ selected_siebel_server_host }}"
-      run_once: true
-    
     - name: Print environment and branch name
       debug:
         msg: "Running playbook in Environment: {{ env }}, Branch_Name: {{ Branch_Name }}, packageFilename: {{ packageFilename }}"
       run_once: true  
 
-    - name: Check if export file exists
+    - name: Check if target tmp dir exists
       stat:
-        path: /sfs/migration/{{ packageFilename }}
-      register: export_file
-      run_once: true
-      
-    - name: Removing existing export file with same name
-      shell: |
-        cd /sfs/migration
-        rm -f {{ packageFilename }}
-      when: export_file.stat.exists
+        path: "{{ tmp_folder }}/migration"
+      register: export_tmp_dir
       run_once: true
 
-    - name: Copy Export Folder from Siebel repository to siebel sfs folder
+
+    - name: Removing existing tmp dir
+      shell: |
+        cd {{ tmp_folder }}
+        rm -rf migration
+        mkdir migration
+      ##when: export_tmp_dir.stat.isdir is defined and export_tmp_dir.stat.isdir
       run_once: true
-      copy:
-        src: "{{ workspace }}/{{ Repo_Name }}/DeploymentArtifacts/{{ packageFilename }}"
-        dest: /sfs/migration
-        force: yes
-        mode: '0777'
-        
+
+    - name: Clone
+      ansible.builtin.shell: |
+        cd {{ tmp_folder }}/migration
+        git clone --filter=blob:none --sparse https://x-token-auth:{{ git_token }}@github.com/cheolminhwang/{{ repo_name }}.git --branch {{ Branch_Name }}
+        cd {{ repo_name }}
+        git sparse-checkout set DeploymentArtifacts
+
+        cp {{ tmp_folder }}/migration/{{ repo_name }}/DeploymentArtifacts/{{ packageFilename }} {{ sfs_folder }}

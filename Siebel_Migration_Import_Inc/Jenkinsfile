@@ -6,9 +6,9 @@ pipeline {
 	 	}
 	}
     environment {
-       	def Ansible_Host_Name = "app_server_01"
+       	//def Ansible_Host_Name = "app_server_01"
 	   	def Repo_Name = "bpm"
-		def Mig_Plan_Name = "IRR_async_import"
+		def error_message = ""
 	   	def History_ID = ""
     }
     stages {
@@ -19,7 +19,7 @@ pipeline {
         }
 		stage('Environment Name') {
 		  	steps {
-				echo "Variables: ${env.Environment},${Branch_Name},${env.packageFilename}"
+				echo "Variables: ${env.Environment},${env.Branch_Name},${env.Mig_Plan_Name},${env.packageFilename},${env.packageFilename}"
 			}
 		}
 		
@@ -29,14 +29,29 @@ pipeline {
 			}
 	    }
 
+        stage('Git pull and place to sfs folder') {
+            steps{
+                withCredentials([string(credentialsId: 'github_access_token_secret', variable: 'GITHUB_TOKEN')]) { 
+                    ansiColor('xterm') {
+                        ansiblePlaybook(
+                            playbook: "${WORKSPACE}/Siebel_Migration_Export_Inc/ansible_scripts/package_copy.yml",
+                            inventory: "${WORKSPACE}/Siebel_Migration_Export_Inc/ansible_scripts/Inventory/siebel_env.yml",
+                            colorized: true,
+                            extraVars: [
+                                env: "${env.Environment}",
+                                repo_name: "bpm",
+								packageFilename: "${env.packageFilename}",
+                                git_token: "${GITHUB_TOKEN}",
+                                Branch_Name: "${Branch_Name}"
+                            ]
+                        )
+                    }
+                }
+            }	
+        }
+
+/* 
 		stage('Git Clone of Siebel repository') {
-			/*steps {
-				script {
-					withCredentials([string(credentialsId: 'kolea_bitbucket_access_token_secret', variable: 'BITBUCKET_TOKEN')]) {
-						sh("git clone https://x-token-auth:${BITBUCKET_TOKEN}@${MY_GIT_FQDN}/dhs-kolea/${env.Repository_Name}.git --branch main")
-					}
-				}
-			}*/
 			steps {
 				script {
 					withCredentials([string(credentialsId: 'github_access_token_secret', variable: 'BITBUCKET_TOKEN')]) {
@@ -60,7 +75,7 @@ pipeline {
 			ansiColor('xterm') {
 				ansiblePlaybook(
 					playbook: "${WORKSPACE}/Siebel_Migration_Import_Inc/ansible_scripts/package_copy.yml",
-					inventory: "${WORKSPACE}/Siebel_Migration_Import_Inc/ansible_scripts/Inventory/${env.Environment}/${env.Environment}.yml",
+					inventory: "${WORKSPACE}/Siebel_Migration_Import_Inc/ansible_scripts/Inventory/siebel_env.yml",
 					colorized: true,
 					extraVars: [
 						env: "${env.Environment}",
@@ -72,12 +87,12 @@ pipeline {
 				)
 			}
 		  }	
-		}
+		} */
 		stage('Repository Import with migration plan') {
             steps {
 			    script{				
 					withCredentials([usernamePassword(credentialsId: "${env.Environment}_SADMIN", usernameVariable: 'USER', passwordVariable: 'PASS')]) {
-						def apiUrl = "https://${Host_Name}:4330/siebel/v1.0/migration/execution/${Mig_Plan_Name}"
+						def apiUrl = "https://${Host_Name}:4330/siebel/v1.0/migration/execution/${env.Mig_Plan_Name}"
 						def jsonBody = """
 							{
 								"schemaPassword": "OPKNuIA/pwISiUu2zjy9/wXjFQAA",
@@ -89,17 +104,29 @@ pipeline {
 
 						def response = sh(
 							script: """
-								curl -s -X POST '${apiUrl}' \\
+								curl -s --location --insecure --request POST '${apiUrl}' \\
 										-u "$USER:$PASS" \\
 										-H 'Content-Type: application/json' \\
 										-d '${jsonBody}'
 							""",
 							returnStdout: true
 						).trim()
-						def json = readJSON text: response
-						repository_trackingid=json.trackingid
-						History_ID=json.id
-						echo "Response:${json}"
+						try {
+							if (response) {
+								//echo "Migration API Response: ${response}"
+								def json = readJSON text: response
+								error_message=json.error
+								status=json.status
+								History_ID=json.id
+									echo "Schema Export Response ${History_ID}: err:${error_message},  Status:${status}"
+							} else {
+								echo "No response received from migration API."
+								error "No response received from migration API."
+							}
+						} catch (Exception e) {
+							echo "Failed to parse migration response: ${e.message}"
+							error "Failed to parse migration response: ${e.message}"
+						}	
 					}									
 			  	}
             }
@@ -110,25 +137,39 @@ pipeline {
 			   		if(History_ID){
                 		withCredentials([usernamePassword(credentialsId: "${env.Environment}_SADMIN", usernameVariable: 'USER', passwordVariable: 'PASS')]) {
 							while(true){
-								def apiUrl = "https://${Host_Name}:4330/siebel/v1.0/migration/execution/${Mig_Plan_Name}"
+								def apiUrl = "https://${Host_Name}:4330/siebel/v1.0/migration/execution/${env.Mig_Plan_Name}"
 								def jsonBody = """
 								{ }
 								"""
 
 								def response = sh(
 									script: """
-										curl -s -X POST '${apiUrl}' \\
+										curl -s --location --insecure --request GET '${apiUrl}' \\
 											 -u "$USER:$PASS" \\
 											 -H 'Content-Type: application/json' \\
 											 -d '${jsonBody}'
 									""",
 									returnStdout: true
 								).trim()
-								def json = readJSON text: response
-								status=json.status
-								echo "$json"
+								try {
+									if (response) {
+										//echo "Migration API Response: ${response}"
+										def json = readJSON text: response
+										error_message=json.error
+										status=json.status
+										
+										echo "Schema Export Response ${History_ID}: err:${error_message},  Status:${status}"
+									} else {
+										echo "No response received from migration API."
+										error "No response received from migration API."
+									}
+									
+								} catch (Exception e) {
+									echo "Failed to parse migration response: ${e.message}"
+									//error "Failed to parse migration response: ${e.message}"
+								}	
 								
-							    if(!status.equalsIgnoreCase("running"))
+							if(status == null || !status.equalsIgnoreCase("running"))
 								{
 									echo"Export completed with status:${status}"
 									break;
@@ -153,21 +194,32 @@ pipeline {
 
 							def response = sh(
 								script: """
-									curl -s -X GET '${apiUrl}' \\
+									curl -s --location --insecure --request GET '${apiUrl}' \\
 										 -u "$USER:$PASS" \\
 										 -H 'Content-Type: application/json' \\
 										 -d '${jsonBody}'
 								""",
 								returnStdout: true
 							).trim()
-							def json = readJSON text: response
-							status=json.status
-							echo "$json"
-								
-							
-									echo"Export completed with status:${status}"
+							try {
+								if (response) {
+									echo "Migration API Response: ${response}"
+									def json = readJSON text: response
+									error_message=json.error
+									status=json.status
 									 
-												  	   
+									echo "Schema Export Response ${History_ID}: err:${error_message},  Status:${status}"
+								} else {
+									echo "No response received from migration API."
+									error "No response received from migration API."
+								}
+								
+							} catch (Exception e) {
+								echo "Failed to parse migration response: ${e.message}"
+								//error "Failed to parse migration response: ${e.message}"
+							}						
+							
+							echo"Export completed with status:${status}"
                     	}
 				  	}	
                 }
