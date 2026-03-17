@@ -12,11 +12,11 @@ pipeline {
 	   	def History_ID = ""
     }
     stages {
-		stage('Cleanup') {
-            steps {
-                cleanWs()  // Deletes workspace contents
-            }
-        }
+		stage('Checkout devops automation repository') {
+			steps{			
+				checkout scm			
+			}
+	    }
 		stage('Environment Name') {
 		  	steps {
 				echo "Variables: ${env.Environment},${env.Branch_Name},${env.Mig_Plan_Name},${env.packageFilename},${env.packageFilename}"
