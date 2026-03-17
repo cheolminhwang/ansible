@@ -99,7 +99,7 @@ pipeline {
 							if (response) {
 								echo "Migration API Response: ${response}"
 								def json = readJSON text: response
-								trackingid=json.trackingid
+								//trackingid=json.trackingid
 								status=json.status
 								History_ID=json.id
 								echo "Schema Export Response ${History_ID}: tracking Id:${trackingid}, Status:${status}"
