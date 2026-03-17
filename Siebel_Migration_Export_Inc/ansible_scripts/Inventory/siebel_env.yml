@@ -1,7 +1,7 @@
 all:
   hosts:
-    LOCAL:
-      ansible_host: ol8slim
+    sai01:
+      ansible_host: slim8
       ansible_connection: ssh  
 
     PSD11:
