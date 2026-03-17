@@ -151,10 +151,10 @@ pipeline {
 								
 							} catch (Exception e) {
 								echo "Failed to parse migration response: ${e.message}"
-								error "Failed to parse migration response: ${e.message}"
+								//error "Failed to parse migration response: ${e.message}"
 							}	
 														    
-							if(!status.equalsIgnoreCase("running"))
+							if(status == null || !status.equalsIgnoreCase("running"))
 								{
 									echo"Export completed with status:${status}"
 									break;
