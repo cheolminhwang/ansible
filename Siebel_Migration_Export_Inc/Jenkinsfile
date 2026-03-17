@@ -97,8 +97,8 @@ pipeline {
                         ).trim()
 						try {
 							if (response) {
+								echo "Migration API Response: ${response}"
 								def json = readJSON text: response
-								echo "Migration API Response: ${json}"
 								trackingid=json.trackingid
 								status=json.status
 								History_ID=json.id
