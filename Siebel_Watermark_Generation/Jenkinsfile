@@ -37,7 +37,7 @@ pipeline {
 
                         def response = sh(
                             script: """
-                                curl -s --location --insecure --request POST '${apiUrl}' \\
+                                curl --location --insecure --request POST '${apiUrl}' \\
                                      -u "$USER:$PASS" \\
                                      -H 'Content-Type: application/json' \\
                                      -d '${jsonBody}' 2>/tmp/curl_error.log
