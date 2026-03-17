@@ -99,8 +99,8 @@ pipeline {
 							def json = readJSON text: response
 							echo "json: ${json}"
 							//trackingid=json.trackingid
-							status=json.status
-							History_ID=json.id
+					//		status=json.status
+					//		History_ID=json.id
 							echo "Schema Export Response ${History_ID}: / Status:${status}"
 						} catch (Exception e) {
 							echo "Failed to parse migration response: ${e.message}"
