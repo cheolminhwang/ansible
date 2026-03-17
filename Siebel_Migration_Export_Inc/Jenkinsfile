@@ -136,11 +136,23 @@ pipeline {
 								""",
 								returnStdout: true
 							).trim()
-							def json = readJSON text: response
-							trackingid=json.trackingid
-							status=json.status
-							History_ID=json.id
-							echo "Schema Export Response ${History_ID}: tracking Id:${trackingid}, Status:${status}"
+							try {
+								if (response) {
+									echo "Migration API Response: ${response}"
+									def json = readJSON text: response
+									//trackingid=json.trackingid
+									status=json.status
+									History_ID=json.id
+									echo "Schema Export Response ${History_ID}:   Status:${status}"
+								} else {
+									echo "No response received from migration API."
+									error "No response received from migration API."
+								}
+								
+							} catch (Exception e) {
+								echo "Failed to parse migration response: ${e.message}"
+								error "Failed to parse migration response: ${e.message}"
+							}	
 														    
 							if(!status.equalsIgnoreCase("running"))
 								{
