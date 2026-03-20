@@ -1,7 +1,7 @@
 all:
   hosts:
     dsai:
-      ansible_host: slim8
+      ansible_host: dslim8
       ansible_connection: ssh  
 
     PSD11:
