@@ -1,6 +1,6 @@
 all:
   hosts:
-    sai01:
+    dsai:
       ansible_host: slim8
       ansible_connection: ssh  
 
