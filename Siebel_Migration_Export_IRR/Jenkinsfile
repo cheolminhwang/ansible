@@ -234,9 +234,6 @@ pipeline {
 				status = "ALLDONE"
             }	
         }
-	}
-    
-	stages {
         stage('Initiate Watermark job after import') {
 			when {
 				expression { return status == "ALLDONE" }
@@ -252,5 +249,10 @@ pipeline {
                       ]
             }
         }
-    }
+	}
+	post {
+		always {
+			echo "Pipeline completed with status: ${currentBuild.currentResult}"
+		}
+	}
 }
