@@ -231,12 +231,11 @@ pipeline {
                         )
                     }
                 }
-				status = "ALLDONE"
             }	
         }
         stage('Initiate Watermark job after import') {
 			when {
-				expression { return status == "ALLDONE" }
+				expression { return status != "NOGOOD" }
 			}
             steps {
                 build job: 'Siebel_Watermark_Generation',  
