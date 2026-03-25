@@ -1,33 +1,10 @@
 all:
   hosts:
     dsai:
-      ansible_host: dslim8
+      ansible_host: oses
       ansible_connection: ssh  
 
     PSD11:
       ansible_host: psd11vsbl01.dhsie.hawaii.gov
       ansible_connection: ssh  
 
-    PSD12:
-      ansible_host: psd12vsbl01.dhsie.hawaii.gov
-      ansible_connection: ssh  
-
-    PSD13:
-      ansible_host: psd13vsbl01.dhsie.hawaii.gov
-      ansible_connection: ssh 
-    
-    PSD14:
-      ansible_host: psd14vsbl01.dhsie.hawaii.gov
-      ansible_connection: ssh 
-    
-    SIT11:
-      ansible_host: sit11vsbl01.dhsie.hawaii.gov
-      ansible_connection: ssh 
-
-    SIT12:
-      ansible_host: sit12vsbl01.dhsie.hawaii.gov
-      ansible_connection: ssh
-      
-    SIT14:
-      ansible_host: sit14vsbl01.dhsie.hawaii.gov
-      ansible_connection: ssh      
