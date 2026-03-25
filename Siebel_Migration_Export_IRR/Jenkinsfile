@@ -28,7 +28,7 @@ pipeline {
 		  steps {
 			echo "Env_Variable: ${env.Environment}"
 			//echo "RepoName_Variable: ${env.Repository_Name}"
-			echo "WaterMark_Variable:${env.watermark}"
+			echo "Host_Name:${env.Host_Name}"
 			echo "packageFilename:${env.packageFilename}"
 			echo "Branch_Name: ${env.Branch_Name}"
 			}
@@ -79,7 +79,7 @@ pipeline {
 			   	script {
                 	withCredentials([usernamePassword(credentialsId: "${env.Environment}_SADMIN", usernameVariable: 'USER', passwordVariable: 'PASS')]) {
                     
-                        def apiUrl = "https://${Host_Name}:4430/siebel/v1.0/migration/execution/${env.Mig_Plan_Name}"
+                        def apiUrl = "https://${env.Host_Name}:4430/siebel/v1.0/migration/execution/${env.Mig_Plan_Name}"
                         def jsonBody = """
 						{
     						"packageFilename": "${env.Environment}_${env.packageFilename}",
@@ -121,7 +121,7 @@ pipeline {
 			   	script {
                 	withCredentials([usernamePassword(credentialsId: "${env.Environment}_SADMIN", usernameVariable: 'USER', passwordVariable: 'PASS')]) {
 						while(true){
-							def apiUrl = "https://${Host_Name}:4430/siebel/v1.0/migration/execution/${env.Mig_Plan_Name}"
+							def apiUrl = "https://${env.Host_Name}:4430/siebel/v1.0/migration/execution/${env.Mig_Plan_Name}"
 							def jsonBody = """
 							{		
 							}
@@ -171,7 +171,7 @@ pipeline {
 			   		if(History_ID){
                 		withCredentials([usernamePassword(credentialsId: "${env.Environment}_SADMIN", usernameVariable: 'USER', passwordVariable: 'PASS')]) {
 						
-							def apiUrl = "https://${Host_Name}:4430/siebel/v1.0/migration/history/${History_ID}"
+							def apiUrl = "https://${env.Host_Name}:4430/siebel/v1.0/migration/history/${History_ID}"
 							def jsonBody = """
 								{ }
 								"""
@@ -231,7 +231,30 @@ pipeline {
                         )
                     }
                 }
+				status = "ALLDONE"
             }	
         }
+	}
+    
+	stages {
+        stage('Initiate Watermark job after import') {
+			when {
+				expression { return status == "ALLDONE" }
+			}
+            steps {
+                build job: 'Siebel_Watermark_Generation',  
+                      wait: true,             // Wait for completion (default)
+                      propagate: true,        // Propagate failure back to this pipeline (default)
+                      parameters: [
+                          string(name: 'Environment', value: "${env.Environment}"), 
+                          string(name: 'Host_Name', value: "${env.Host_Name}"), 
+                          string(name: 'File_Name', value: "${env.Environment}_watermark.txt")
+                      ]
+            }
+        }
+    }
+
+
+
    }
 }
