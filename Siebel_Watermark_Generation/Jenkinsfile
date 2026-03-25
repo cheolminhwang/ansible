@@ -85,7 +85,7 @@ pipeline {
                 }
             }	
         }
-		stage('Send Email'){
+/* 		stage('Send Email'){
 		    steps {
 			withCredentials([usernamePassword(credentialsId: 'jenkins-username-password', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
 
@@ -104,5 +104,5 @@ pipeline {
           }
 		 } 
 	  }	
-    }
+ */    }
 }
