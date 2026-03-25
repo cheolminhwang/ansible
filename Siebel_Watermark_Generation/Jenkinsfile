@@ -9,7 +9,7 @@ pipeline {
             def error_message = ""
             def watermark = ""
             def Branch_Name = "master"
-            def tmpname="SBL"
+            def tmpname="POC"
         }
     stages {
 		stage('Checkout devops automation repository') {
