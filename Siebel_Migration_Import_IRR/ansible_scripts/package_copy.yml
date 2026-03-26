@@ -51,5 +51,5 @@
         dest: "{{ sfs_folder }}/{{ packageFilename }}"
         force: yes
         mode: '0777'
-        ##remote_src: true
+        remote_src: true
 
