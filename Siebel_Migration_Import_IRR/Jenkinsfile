@@ -28,8 +28,8 @@ pipeline {
                 withCredentials([string(credentialsId: 'github_access_token_secret', variable: 'GITHUB_TOKEN')]) { 
                     ansiColor('xterm') {
                         ansiblePlaybook(
-                            playbook: "${WORKSPACE}/Siebel_Migration_Import_Inc/ansible_scripts/package_copy.yml",
-                            inventory: "${WORKSPACE}/Siebel_Migration_Import_Inc/ansible_scripts/Inventory/siebel_env.yml",
+                            playbook: "${WORKSPACE}/Siebel_Migration_Import_IRR/ansible_scripts/package_copy.yml",
+                            inventory: "${WORKSPACE}/Siebel_Migration_Import_IRR/ansible_scripts/Inventory/siebel_env.yml",
                             colorized: true,
                             extraVars: [
                                 env: "${env.Environment}",
@@ -68,8 +68,8 @@ pipeline {
 		 steps{
 			ansiColor('xterm') {
 				ansiblePlaybook(
-					playbook: "${WORKSPACE}/Siebel_Migration_Import_Inc/ansible_scripts/package_copy.yml",
-					inventory: "${WORKSPACE}/Siebel_Migration_Import_Inc/ansible_scripts/Inventory/siebel_env.yml",
+					playbook: "${WORKSPACE}/Siebel_Migration_Import_IRR/ansible_scripts/package_copy.yml",
+					inventory: "${WORKSPACE}/Siebel_Migration_Import_IRR/ansible_scripts/Inventory/siebel_env.yml",
 					colorized: true,
 					extraVars: [
 						env: "${env.Environment}",
@@ -82,7 +82,7 @@ pipeline {
 			}
 		  }	
 		} */
-		stage('Repository Import with migration plan') {
+		stage('===============Repository Import with migration plan') {
             steps {
 			    script{				
 					withCredentials([usernamePassword(credentialsId: "${env.Environment}_SADMIN", usernameVariable: 'USER', passwordVariable: 'PASS')]) {
@@ -125,7 +125,7 @@ pipeline {
 			  	}
             }
         }
-		stage('Repository Import Get Status'){
+		stage('===============Repository Import Get Status'){
             steps {
 			   	script{
 			   		if(History_ID){
@@ -168,14 +168,14 @@ pipeline {
 									echo"Export completed with status:${status}"
 									break;
 								}
-								sleep time: 300, unit: 'SECONDS'
+								sleep time: 120, unit: 'SECONDS'
 					  		}	   
                     	}
 				  	}
                 }
             }
         }
-		stage('Repository Import Status at History'){
+		stage('===============Repository Import Status at History'){
             steps {
 			   	script{
 			   		if(History_ID){
@@ -230,7 +230,7 @@ pipeline {
                       parameters: [
                           string(name: 'Environment', value: "${env.Environment}"), 
                           string(name: 'Host_Name', value: "${env.Host_Name}"), 
-                          string(name: 'File_Name', value: "${env.Environment}_watermark.txt")
+                          string(name: 'File_Name', value: "watermark.txt") //${env.Environment}_watermark.txt
                       ]
             }
         }

@@ -43,4 +43,13 @@
         cd {{ repo_name }}
         git sparse-checkout set DeploymentArtifacts
 
-        cp {{ tmp_folder }}/migration/{{ repo_name }}/DeploymentArtifacts/{{ packageFilename }} {{ sfs_folder }}
+      ##  cp {{ tmp_folder }}/migration/{{ repo_name }}/DeploymentArtifacts/{{ packageFilename }} {{ sfs_folder }}
+
+    - name: Copy Export Folder from Siebel repository to siebel sfs folder
+      copy:
+        src: "{{ tmp_folder }}/migration/{{ repo_name }}/DeploymentArtifacts/{{ packageFilename }}"
+        dest: "{{ sfs_folder }}/{{ packageFilename }}"
+        force: yes
+        mode: '0777'
+        remote_src: true
+
