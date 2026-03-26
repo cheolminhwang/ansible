@@ -2,7 +2,7 @@ all:
   hosts:
     osai:
       ansible_host: oses
-      ansible_port: 2200
+      ansible_port: 2222
       ansible_connection: ssh  
 
     PSD11:
