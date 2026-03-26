@@ -116,7 +116,7 @@ pipeline {
 			  	}	
             }
         }
-        stage('Schema Export Status') {
+        stage('===============================Schema Export Status') {
             steps {
 			   	script {
                 	withCredentials([usernamePassword(credentialsId: "${env.Environment}_SADMIN", usernameVariable: 'USER', passwordVariable: 'PASS')]) {
@@ -165,7 +165,7 @@ pipeline {
 			  	}	
             }
         }
-		stage('Repository Import Status at History'){
+		stage('=================================Repository Import Status at History'){
             steps {
 			   	script{
 			   		if(History_ID){
@@ -212,7 +212,7 @@ pipeline {
                 }
             }
         }
-        stage('Git push') {
+        stage('=================================Git push') {
             steps{
                 withCredentials([string(credentialsId: 'github_access_token_secret', variable: 'GITHUB_TOKEN')]) { 
                     ansiColor('xterm') {
@@ -232,21 +232,6 @@ pipeline {
                     }
                 }
             }	
-        }
-        stage('Initiate Watermark job after import') {
-			when {
-				expression { return status != "NOGOOD" }
-			}
-            steps {
-                build job: 'Siebel_Migration_Watermark_Generation',  
-                      wait: true,             // Wait for completion (default)
-                      propagate: true,        // Propagate failure back to this pipeline (default)
-                      parameters: [
-                          string(name: 'Environment', value: "${env.Environment}"), 
-                          string(name: 'Host_Name', value: "${env.Host_Name}"), 
-                          string(name: 'File_Name', value: "${env.Environment}_watermark.txt")
-                      ]
-            }
         }
 	}
 	post {

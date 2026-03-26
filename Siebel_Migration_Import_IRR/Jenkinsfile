@@ -219,5 +219,21 @@ pipeline {
                 }
             }
         }
+		stage('=================================Initiate Watermark job after import') {
+			when {
+				expression { return status != "NOGOOD" }
+			}
+            steps {
+                build job: 'Siebel_Migration_Watermark_Generation',  
+                      wait: true,             // Wait for completion (default)
+                      propagate: true,        // Propagate failure back to this pipeline (default)
+                      parameters: [
+                          string(name: 'Environment', value: "${env.Environment}"), 
+                          string(name: 'Host_Name', value: "${env.Host_Name}"), 
+                          string(name: 'File_Name', value: "${env.Environment}_watermark.txt")
+                      ]
+            }
+        }
+
     }
 }
