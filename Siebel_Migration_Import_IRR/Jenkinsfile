@@ -220,9 +220,9 @@ pipeline {
             }
         }
 		stage('=================================Initiate Watermark job after import') {
-			when {
-				expression { return status != "NOGOOD" }
-			}
+            when {
+                expression { History_ID != null && History_ID != "" }
+            }
             steps {
                 build job: 'Siebel_Migration_Watermark_Generation',  
                       wait: true,             // Wait for completion (default)

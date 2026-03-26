@@ -12,7 +12,7 @@ pipeline {
             def tmpname="POC"
         }
     stages {
-		stage('Checkout devops automation repository') {
+		stage('=============================================Checkout devops automation repository') {
 			steps{			
 				checkout scm			
 			}
@@ -23,7 +23,7 @@ pipeline {
 			echo "Variables: ${env.Environment} ${env.Host_Name} ${env.File_Name}"
 			}
 		}
-		stage('Target Environment Watermark') {
+		stage('=============================================Target Environment Watermark') {
             steps {
                 withCredentials([usernamePassword(credentialsId: "${env.Environment}_SADMIN", usernameVariable: 'USER', passwordVariable: 'PASS')]) {
                     script {
@@ -64,7 +64,10 @@ pipeline {
                 }
             }
         }
-        stage('Git push') {
+        stage('=============================================Git push') {
+            when {
+                expression { (error_message == null || error_message == "") && watermark != "" }
+            }
             steps{
                 withCredentials([string(credentialsId: 'github_access_token_secret', variable: 'GITHUB_TOKEN')]) { 
                     ansiColor('xterm') {

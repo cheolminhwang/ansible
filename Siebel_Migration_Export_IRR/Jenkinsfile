@@ -119,49 +119,51 @@ pipeline {
         stage('===============================Schema Export Status') {
             steps {
 			   	script {
-                	withCredentials([usernamePassword(credentialsId: "${env.Environment}_SADMIN", usernameVariable: 'USER', passwordVariable: 'PASS')]) {
-						while(true){
-							def apiUrl = "https://${env.Host_Name}:4430/siebel/v1.0/migration/execution/${env.Mig_Plan_Name}"
-							def jsonBody = """
-							{		
-							}
-							"""
+					if(History_ID){
+						withCredentials([usernamePassword(credentialsId: "${env.Environment}_SADMIN", usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+							while(true){
+								def apiUrl = "https://${env.Host_Name}:4430/siebel/v1.0/migration/execution/${env.Mig_Plan_Name}"
+								def jsonBody = """
+								{		
+								}
+								"""
 
-							def response = sh(
-								script: """
-									curl -s --location --insecure --request GET '${apiUrl}' \\
-										-u "$USER:$PASS" \\
-										-H 'Content-Type: application/json' \\
-										-d '${jsonBody}'
-								""",
-								returnStdout: true
-							).trim()
-							try {
-								if (response) {
-									echo "Migration API Response: ${response}"
-									def json = readJSON text: response
-									error_message=json.error
-									status=json.status
-									 
-									echo "Schema Export Response ${History_ID}: err:${error_message},  Status:${status}"
-								} else {
-									echo "No response received from migration API."
-									error "No response received from migration API."
-								}
-								
-							} catch (Exception e) {
-								echo "Failed to parse migration response: ${e.message}"
-								//error "Failed to parse migration response: ${e.message}"
-							}	
-														    
-							if(status == null || !status.equalsIgnoreCase("running"))
-								{
-									echo"Export completed with status:${status}"
-									break;
-								}
-								sleep time: 300, unit: 'SECONDS'
-						}
-                    }             		  
+								def response = sh(
+									script: """
+										curl -s --location --insecure --request GET '${apiUrl}' \\
+											-u "$USER:$PASS" \\
+											-H 'Content-Type: application/json' \\
+											-d '${jsonBody}'
+									""",
+									returnStdout: true
+								).trim()
+								try {
+									if (response) {
+										echo "Migration API Response: ${response}"
+										def json = readJSON text: response
+										error_message=json.error
+										status=json.status
+										
+										echo "Schema Export Response ${History_ID}: err:${error_message},  Status:${status}"
+									} else {
+										echo "No response received from migration API."
+										error "No response received from migration API."
+									}
+									
+								} catch (Exception e) {
+									echo "Failed to parse migration response: ${e.message}"
+									//error "Failed to parse migration response: ${e.message}"
+								}	
+																
+								if(status == null || !status.equalsIgnoreCase("running"))
+									{
+										echo"Export completed with status:${status}"
+										break;
+									}
+									sleep time: 300, unit: 'SECONDS'
+							}
+						}   
+					}          		  
 			  	}	
             }
         }
