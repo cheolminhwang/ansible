@@ -38,8 +38,8 @@ pipeline {
                 withCredentials([string(credentialsId: 'github_access_token_secret', variable: 'GITHUB_TOKEN')]) { 
                     ansiColor('xterm') {
                         ansiblePlaybook(
-                            playbook: "${WORKSPACE}/Siebel_Migration_Export_Inc/ansible_scripts/watermark_copy.yml",
-                            inventory: "${WORKSPACE}/Siebel_Migration_Export_Inc/ansible_scripts/Inventory/siebel_env.yml",
+                            playbook: "${WORKSPACE}/Siebel_Migration_Export_IRR/ansible_scripts/watermark_copy.yml",
+                            inventory: "${WORKSPACE}/Siebel_Migration_Export_IRR/ansible_scripts/Inventory/siebel_env.yml",
                             //credentialsId: 'jenkins_private_key',
                             colorized: true,
                             extraVars: [
@@ -217,8 +217,8 @@ pipeline {
                 withCredentials([string(credentialsId: 'github_access_token_secret', variable: 'GITHUB_TOKEN')]) { 
                     ansiColor('xterm') {
                         ansiblePlaybook(
-                            playbook: "${WORKSPACE}/Siebel_Migration_Export_Inc/ansible_scripts/package_copy.yml",
-                            inventory: "${WORKSPACE}/Siebel_Migration_Export_Inc/ansible_scripts/Inventory/siebel_env.yml",
+                            playbook: "${WORKSPACE}/Siebel_Migration_Export_IRR/ansible_scripts/package_copy.yml",
+                            inventory: "${WORKSPACE}/Siebel_Migration_Export_IRR/ansible_scripts/Inventory/siebel_env.yml",
                             //credentialsId: 'jenkins_private_key',
                             colorized: true,
                             extraVars: [
