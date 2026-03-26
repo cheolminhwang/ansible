@@ -215,7 +215,10 @@ pipeline {
             }
         }
         stage('=================================Git push') {
-            steps{
+        	when {
+                expression { History_ID != null && History_ID != "" }
+            }
+           	steps{
                 withCredentials([string(credentialsId: 'github_access_token_secret', variable: 'GITHUB_TOKEN')]) { 
                     ansiColor('xterm') {
                         ansiblePlaybook(

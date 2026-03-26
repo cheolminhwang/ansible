@@ -3,6 +3,7 @@ all:
     osai:
       ansible_host: oses
       ansible_port: 2222
+      ansible_python_interpreter: /usr/bin/python3
       ansible_connection: ssh  
 
     PSD11:
