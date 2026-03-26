@@ -1,6 +1,6 @@
 all:
   hosts:
-    dsai:
+    osai:
       ansible_host: oses
       ansible_connection: ssh  
 
