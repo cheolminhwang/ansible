@@ -1,7 +1,7 @@
 all:
   hosts:
     tsai:
-      ansible_host: tslim8
+      ansible_host: tsai
       ansible_python_interpreter: /usr/bin/python3
       ansible_connection: ssh  
 
