@@ -3,11 +3,11 @@
   gather_facts: no
   remote_user: devopsadmin
   become: yes
-  become_user: oracle
+  become_user: siebel
   become_method: sudo
   
-  vars_files:
-    - ../../ansible_automation_password_vault.yml
+  #vars_files:
+  #  - ../../ansible_automation_password_vault.yml
   
   vars:
     backup_date: "{{ '%m%d%Y' | strftime }}"
@@ -16,11 +16,11 @@
 
     - name: Print environment and branch name
       debug:
-        msg: "Running playbook in Environment: {{ env }}, Repository_Name: {{ Repository_Name }},/u01/sfs/migration/{{ migrationid }}"
+        msg: "Running playbook in Environment: {{ env }}, Repository_Name: {{ Repository_Name }},/sfs/migration/{{ migrationid }}"
 
     - name: Check if export.zip file exists
       ansible.builtin.stat:
-        path: /u01/sfs/migration/{{ migrationid }}
+        path: /sfs/migration/{{ migrationid }}
       register: export_folder
 
     - name: Export folder doesnot exists
@@ -30,17 +30,17 @@
       
     - name: Full Permission folder if it exists
       shell: |
-          echo "/u01/sfs/migration/{{ migrationid }}"
-          chmod -R 777 /u01/sfs/migration/{{ migrationid }}
+          echo "/sfs/migration/{{ migrationid }}"
+          chmod -R 777 /sfs/migration/{{ migrationid }}
       
 
     - name: Clone export.zip file from Siebel repository to remote server
       ansible.builtin.copy:
-        src: /u01/sfs/migration/{{ migrationid }}
-        dest: /stage/asi/automations/siebel_export
+        src: /sfs/migration/{{ migrationid }}
+        dest: /tmp/siebel_export
         remote_src: true
         
     - name: Remaining Export folder if it exists
       shell: |
           DATE=$(date +%Y_%m_%d)
-          mv /u01/sfs/migration/{{ migrationid }} /u01/sfs/migration/{{ migrationid }}_$DATE
+          mv /sfs/migration/{{ migrationid }} /sfs/migration/{{ migrationid }}_$DATE

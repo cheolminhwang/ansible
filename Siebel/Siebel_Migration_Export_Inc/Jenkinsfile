@@ -2,7 +2,7 @@ pipeline {
     agent {
 	 node{
 	label 'built-in'
-	customWorkspace '/stage/asi/automations/siebel_export'
+	customWorkspace '/tmp/siebel_export'
 	 }
 	}
       environment {
@@ -35,7 +35,7 @@ pipeline {
 				echo "Checking Schema Changed"
                 withCredentials([usernamePassword(credentialsId: "${env.Environment}_SADMIN", usernameVariable: 'USER', passwordVariable: 'PASS')]) {
                     script {
-                        def apiUrl = "https://${Host_Name}:9112/siebel/v1.0/service/Migration%20Schema%20Service/IsSchemaChanged"
+                        def apiUrl = "https://${Host_Name}:4430/siebel/v1.0/service/Migration%20Schema%20Service/IsSchemaChanged"
                         def jsonBody = """
 						{
 							 "body":
@@ -69,7 +69,7 @@ pipeline {
 			   if (schema_changed == "Y"){
                 withCredentials([usernamePassword(credentialsId: "${env.Environment}_SADMIN", usernameVariable: 'USER', passwordVariable: 'PASS')]) {
                     
-                        def apiUrl = "https://${Host_Name}:9112/siebel/v1.0/service/Migration%20Schema%20Service/Export"
+                        def apiUrl = "https://${Host_Name}:4430/siebel/v1.0/service/Migration%20Schema%20Service/Export"
                         def jsonBody = """
 						{
 							 "body":
@@ -108,7 +108,7 @@ pipeline {
 			     if (schema_changed == "Y"){
 					withCredentials([usernamePassword(credentialsId: "${env.Environment}_SADMIN", usernameVariable: 'USER', passwordVariable: 'PASS')]) { 
 							while(true){
-									def apiUrl = "https://${Host_Name}:9112/siebel/v1.0/service/Migration%20Schema%20Service/GetStatus"
+									def apiUrl = "https://${Host_Name}:4430/siebel/v1.0/service/Migration%20Schema%20Service/GetStatus"
 									def jsonBody = """
 									{
 										 "body":
@@ -150,7 +150,7 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: "${env.Environment}_SADMIN", usernameVariable: 'USER', passwordVariable: 'PASS')]) {
                     script {
-                        def apiUrl = "https://${Host_Name}:9112/siebel/v1.0/service/Migration%20Incremental%20Runtime%20Repository%20Data%20Service/Export"
+                        def apiUrl = "https://${Host_Name}:4430/siebel/v1.0/service/Migration%20Incremental%20Runtime%20Repository%20Data%20Service/Export"
                         def jsonBody = """
 						{
 							 "body":
@@ -183,7 +183,7 @@ pipeline {
                 withCredentials([usernamePassword(credentialsId: "${env.Environment}_SADMIN", usernameVariable: 'USER', passwordVariable: 'PASS')]) {
                     script {
 						while(true){
-								def apiUrl = "https://${Host_Name}:9112/siebel/v1.0/service/Migration%20Incremental%20Runtime%20Repository%20Data%20Service/GetStatus"
+								def apiUrl = "https://${Host_Name}:4430/siebel/v1.0/service/Migration%20Incremental%20Runtime%20Repository%20Data%20Service/GetStatus"
 								def jsonBody = """
 								{
 									 "body":
@@ -224,7 +224,7 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: "${env.Environment}_SADMIN", usernameVariable: 'USER', passwordVariable: 'PASS')]) {
                     script {
-                        def apiUrl = "https://${Host_Name}:9112/siebel/v1.0/service/Migration%20Incremental%20Application%20Workspace%20Data%20Service/Export"
+                        def apiUrl = "https://${Host_Name}:4430/siebel/v1.0/service/Migration%20Incremental%20Application%20Workspace%20Data%20Service/Export"
                         def jsonBody = """
 						{
 							 "body":
@@ -257,7 +257,7 @@ pipeline {
                 withCredentials([usernamePassword(credentialsId: "${env.Environment}_SADMIN", usernameVariable: 'USER', passwordVariable: 'PASS')]) {
                     script {
 						while(true){
-								def apiUrl = "https://${Host_Name}:9112/siebel/v1.0/service/Migration%20Incremental%20Application%20Workspace%20Data%20Service/GetStatus"
+								def apiUrl = "https://${Host_Name}:4430/siebel/v1.0/service/Migration%20Incremental%20Application%20Workspace%20Data%20Service/GetStatus"
 								def jsonBody = """
 								{
 									 "body":
