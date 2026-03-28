@@ -1,0 +1,54 @@
+#!/usr/bin/env groovy
+/**
+ * Main pipeline file which Jenkins uses to execute pipeline scripts.
+ *
+ * @version 1.0
+ */
+node {
+    
+    ws('/stage/asi/automations/siebel_index_creation') {
+        timestamps {
+            stage('Cleanup Workspace for siebel_index_creation') {
+                // Cleanup Workspace
+                deleteDir()
+            }
+
+            stage('Checkout devops automation repository') {
+                // Checkout pipeline code base from git
+                checkout scm
+            }
+
+            stage('Environment Name') {
+                echo "Environment variable: ${Environment}"
+                echo "Environment variable from env: ${env.Environment}"
+            }
+
+            stage('Git Clone of Siebel repository') {
+                script {
+                    withCredentials([string(credentialsId: 'kolea_bitbucket_access_token_secret', variable: 'BITBUCKET_TOKEN')]) {
+                        sh("git clone https://x-token-auth:${BITBUCKET_TOKEN}@${MY_GIT_FQDN}/dhs-kolea/sbl_code_repo.git --branch ${Branch_Name}")
+                    }
+                }
+            }
+            
+            stage('Running Ansible') {
+                withCredentials([usernamePassword(credentialsId: "${env.Environment}_SIEBEL", usernameVariable: 'USER_SIEBEL', passwordVariable: 'PASS_SIEBEL')]){
+                 ansiColor('xterm') {
+                    ansiblePlaybook(
+                        playbook: "${WORKSPACE}/Siebel_Index_Creation/ansible_scripts/siebelindexcreation.yml",
+                        inventory: "${WORKSPACE}/Siebel_Index_Creation/ansible_scripts/inventory/siebel_env.yml",
+                        colorized: true,
+                        extraVars: [
+                            env: "${env.Environment}",
+                            siebel_password: "${PASS_SIEBEL}",
+                            Branch_Name: "${env.Branch_Name}",
+                            tns_servicename: "${env.TNS_Identifier}",
+                            SQL_File: "${env.SQL_File}"
+                        ]
+                    )
+                }
+            }
+          }
+        }
+    }
+}

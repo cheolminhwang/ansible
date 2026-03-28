@@ -1,0 +1,42 @@
+---
+- hosts: "{{ env }}"
+  gather_facts: no
+  remote_user: devopsadmin
+  become: yes
+  become_user: oracle
+  become_method: sudo
+  
+  vars_files:
+    - ../../ansible_automation_password_vault.yml
+  
+  vars:
+    backup_date: "{{ '%m%d%Y' | strftime }}"
+    
+  tasks:
+
+    - name: Print environment and branch name
+      debug:
+        msg: "Running playbook in Environment: {{ env }}, Repository_Name: {{ Repository_Name }}"
+
+
+    - name: Check if export.zip file exists
+      stat:
+        path: /u01/sfs/migration/{{ migrationid }}
+      register: export_folder
+
+    - name: Export folder doesnot exists
+      fail:
+        msg: "Directory does not exist!"
+      when: not (export_folder.stat.exists and export_folder.stat.isdir)
+      
+    - name: Export folder if it exists
+      shell: |
+          echo "/u01/sfs/migration/{{ migrationid }}"
+          chmod -R 777 /u01/sfs/migration/{{ migrationid }}
+      
+
+    - name: Clone export.zip file from Siebel repository to remote server
+      ansible.builtin.copy:
+        src: /u01/sfs/migration/{{ migrationid }}
+        dest: /stage/asi/automations/siebel_export
+        remote_src: true

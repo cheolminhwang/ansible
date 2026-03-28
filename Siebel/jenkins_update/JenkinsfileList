@@ -1,0 +1,37 @@
+
+pipeline {
+    agent {
+		node{
+			label 'built-in'
+			customWorkspace '/stage/asi/automations/tmp'
+		}
+	}
+
+    stages {		 
+			
+		stage('Checkout') {
+			steps {
+				checkout scm
+			}			
+		}
+		
+        stage('Execution') {
+            steps {
+                script {
+                    def response = sh(
+                        script: """
+							cd jenkins_update
+							wget https://build-oci.dhsie.hawaii.gov/jnlpJars/jenkins-cli.jar
+							wget https://github.com/jenkinsci/plugin-installation-manager-tool/releases/download/2.13.2/jenkins-plugin-manager-2.13.2.jar
+
+                            ls -al
+							python3 pyPrePlugins.py
+                        """,
+                        returnStdout: true
+                    ).trim() 
+                    echo "response:${response}"               
+                }
+            }
+        }
+    }
+}

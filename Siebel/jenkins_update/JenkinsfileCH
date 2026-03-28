@@ -1,0 +1,41 @@
+def repoURL = "https://bitbucket.org/dhs-kolea/${params.Repository}.git"
+
+pipeline {
+    agent {
+		node{
+			label 'built-in'
+			customWorkspace '/stage/asi/automations/tmp'
+		}
+	}
+
+    stages {		 
+		stage('Environment') {
+			steps {
+				echo "MY_GIT_URL: ${env.MY_GIT_URL}"
+				echo "repoURL: ${repoURL}"
+				echo "params.Tag: ${params.Tag}"
+			}
+		}
+		
+		stage('Checkout') {
+			steps {
+				checkout scm
+			}			
+		}
+		
+        stage('Checkout2') {
+            steps {
+                script {
+                    def response = sh(
+						script """
+        					
+							git log --pretty=oneline
+    					""",
+                        returnStdout: true
+                    ).trim() 
+                    echo "response:${response}"               
+                }
+            }
+        }
+    }
+}

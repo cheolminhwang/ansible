@@ -1,0 +1,10 @@
+[PSD11:children]
+App_Servers
+Web_Servers
+
+[App_Servers]
+app_server_01            ansible_ssh_host=psd11vsbl01.dhsie.hawaii.gov   ansible_connection=ssh
+
+
+[Web_Servers]
+web_server_01            ansible_ssh_host=psd11vsai01.dhsie.hawaii.gov   ansible_connection=ssh

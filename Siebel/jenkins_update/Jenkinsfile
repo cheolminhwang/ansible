@@ -1,0 +1,59 @@
+def repoURL = "https://bitbucket.org/dhs-kolea/devops_operations.git"
+
+pipeline {
+    agent {
+		node{
+			label 'built-in'
+			customWorkspace '/stage/asi/automations/tmp'
+		}
+	}
+
+    stages {		 
+		stage('Cleanup') {
+			steps {				
+                deleteDir()
+			}
+		}
+		
+		stage('Checkout') {
+			steps {
+				checkout scm
+			}			
+		}
+		
+        stage('Execution') {
+            steps {
+                script {
+                    def response = sh(
+                        script: """
+							cd jenkins_update
+							wget https://build-oci.dhsie.hawaii.gov/jnlpJars/jenkins-cli.jar
+							wget https://github.com/jenkinsci/plugin-installation-manager-tool/releases/download/2.13.2/jenkins-plugin-manager-2.13.2.jar
+
+                            ls -al
+							python3 pyUpdatePlugins.py
+                        """,
+                        returnStdout: true
+                    ).trim() 
+                    echo "response:${response}"               
+                }
+            }
+        }
+
+        stage('SafeRestart') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'jenkins-username-password', usernameVariable: 'J_USER', passwordVariable: 'J_PASS')]) {
+                        def response = sh(
+                            script: """
+						    	cd jenkins_update
+                                bash ./shSafeRestart.sh https://build-oci.dhsie.hawaii.gov jenkins $J_PASS                       
+                            """,
+                            returnStdout: true
+                        ).trim() 
+                        echo "response:${response}"               
+                    }
+                }
+            }
+        }    }
+}

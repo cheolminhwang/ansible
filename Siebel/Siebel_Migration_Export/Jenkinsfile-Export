@@ -1,0 +1,59 @@
+pipeline {
+    agent {
+	 node{
+	label 'built-in'
+	customWorkspace '/stage/asi/automations/siebel_export'
+	 }
+	}
+      environment {
+       def schema_trackingid = ""
+	   def status = ""
+	   def repository_trackingid = ""
+	   def seed_trackingid=""
+	   def repoWatermark= ""
+	   def seedWaterMark= ""
+	   def migrationid="${env.migrationid}"
+	   def Repository_Name="${env.Repository_Name}"
+    }
+    stages {
+		stage('Cleanup') {
+            steps {
+                cleanWs()  // Deletes workspace contents
+            }
+        }
+		stage('Environment Name') {
+		  steps {
+			echo "Variables: ${env.Environment},${migrationid},${env.Version},${env.Repository_Name}"
+			}
+		}
+		stage('Git Clone of Siebel repository') {
+		steps {
+		script {
+				withCredentials([string(credentialsId: 'kolea_bitbucket_access_token_secret', variable: 'BITBUCKET_TOKEN')]) {
+					sh("git clone https://x-token-auth:${BITBUCKET_TOKEN}@${MY_GIT_FQDN}/dhs-kolea/${env.Repository_Name}.git --branch main")
+				}
+			}
+		}
+	  }
+	  stage('Copying Folder'){
+		steps{
+		 sh'''
+		 cd /stage/asi/automations/siebel_export/
+		 cp -r "/stage/asi/automations/siebel_export/${migrationid}" "/stage/asi/automations/siebel_export/${Repository_Name}"
+		 
+		 '''
+		}
+	  }
+	  stage('Checking in Export Folder'){
+		steps{
+		 sh'''
+		 cd /stage/asi/automations/siebel_export/${Repository_Name}
+		  git add .
+          git status
+          git commit -m "Export Folder"
+          git push
+		 '''
+		}
+	  }
+    }
+}

@@ -1,0 +1,73 @@
+---
+- hosts: "{{ env }}"
+  gather_facts: no
+  remote_user: devopsadmin
+  become: yes
+  become_user: oracle
+  become_method: sudo
+  
+  vars_files:
+    - ../../ansible_automation_password_vault.yml
+ 
+    
+  tasks:
+
+    - name: Print environment and branch name
+      debug:
+        msg: "Running playbook in Environment: {{ env }}, Repository_Name: sbl_code_repo, Branch Name: {{Branch_Name}}"
+
+
+    - name: Check if SQL file exists
+      stat:
+        path: /u01/app/siebel/siebsrvr/{{SQL_File}}
+      register: export_file
+
+    - name: Remove existing Create_Indexes.sql file if it exists
+      shell: rm /u01/app/siebel/siebsrvr/{{SQL_File}}
+      when: export_file.stat.exists
+
+    - name: Clone Indexes.sql file from Siebel repository to remote server
+      copy:
+        src: /stage/asi/automations/siebel_index_creation/sbl_code_repo/DeploymentArtifacts/SQL/{{SQL_File}}
+        dest: /u01/app/siebel/siebsrvr/{{SQL_File}}
+        mode: '0777'
+
+    - name: Adding EXIT command to the file
+      shell: echo -e "\nEXIT" >> /u01/app/siebel/siebsrvr/{{SQL_File}}
+      register: indexes_file
+
+    - name: Read the SQL file
+      shell: cat /u01/app/siebel/siebsrvr/{{SQL_File}}
+      register: File_Output
+
+    - name: Show the output of the file
+      debug:
+        msg: "{{ File_Output.stdout }}"
+
+    - name: Run the SQL file for creating Indexes
+      become: true
+      become_flags: '-i'
+      ansible.builtin.shell: |
+        cd /u01/app/siebel/siebsrvr
+        bash -c "source /u01/app/siebel/siebsrvr/siebenv.sh && sqlplus siebel/{{ siebel_password }}@{{ tns_servicename }} @/u01/app/siebel/siebsrvr/{{SQL_File}}
+        "
+      args:
+        executable: /bin/bash  # Required for 'source' to work
+      register: indexcreationoutput
+      ignore_errors: true
+
+    - name: Show output of the command
+      debug:
+        msg: "{{ indexcreationoutput.stdout }}"
+    
+    - name: Check if the Index creation completed successfully
+      debug:
+        msg: "Index Creation completed Successfully."
+      when: "'Error' not in indexcreationoutput.stdout"
+    
+    - name: Fail if Index creation is not executed
+      when: "'Error' in indexcreationoutput.stdout"
+      fail:
+        msg: "Index Creation failed."
+
+    
