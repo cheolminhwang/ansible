@@ -1,7 +1,7 @@
 all:
   hosts:
-    osai:
-      ansible_host: oses
+    tses:
+      ansible_host: tses
       ansible_port: 2222
       ansible_python_interpreter: /usr/bin/python3
       ansible_connection: ssh  
