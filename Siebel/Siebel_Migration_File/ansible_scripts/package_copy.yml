@@ -6,8 +6,8 @@
   become_user: siebel
   become_method: sudo
   
-  vars_files:
-    - ../../ansible_automation_password_vault.yml
+#  vars_files:
+#    - ../../ansible_automation_password_vault.yml
   
   vars:
     backup_date: "{{ '%m%d%Y' | strftime }}"
