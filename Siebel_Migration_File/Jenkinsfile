@@ -6,12 +6,7 @@ pipeline {
 	 	}
 	}
     environment {
-	   	def status = ""
-	   	def History_ID = ""
-	   	def trackingid = ""
-		def error_message = ""
-	   	//def Repository_Name="${env.Repository_Name}"
-	   	def fqdn="github.com/cheolminhwang"
+	   	STATUS = ""
     }
     stages {
 		stage('Cleanup') {
@@ -36,9 +31,6 @@ pipeline {
 		}
 
         stage('=================================Git push') {
-        	when {
-                expression { History_ID != null && History_ID != "" }
-            }
            	steps{
                 withCredentials([string(credentialsId: 'github_access_token_secret', variable: 'GITHUB_TOKEN')]) { 
                     ansiColor('xterm') {
@@ -53,7 +45,7 @@ pipeline {
                                 packageFilename: "${env.Environment}_${env.packageFilename}",
                                 packageFolder: "${env.packageFolder}",
                                 git_token: "${GITHUB_TOKEN}",
-                                Branch_Name: "${Branch_Name}"
+                                Branch_Name: "${env.Branch_Name}"
                             ]
                         )
                     }
