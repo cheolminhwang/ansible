@@ -1,0 +1,69 @@
+pipeline {
+    agent {
+	 	node{
+			label 'built-in'
+			customWorkspace '/tmp/siebel_export'
+	 	}
+	}
+    environment {
+	   	def status = ""
+	   	def History_ID = ""
+	   	def trackingid = ""
+		def error_message = ""
+	   	//def Repository_Name="${env.Repository_Name}"
+	   	def fqdn="github.com/cheolminhwang"
+    }
+    stages {
+		stage('Cleanup') {
+            steps {
+                cleanWs()  // Deletes workspace contents
+            }
+        }
+		stage('Checkout') {
+			steps {
+				checkout scm
+			}			
+        }
+		stage('Environment Name') {
+		  steps {
+			echo "Env_Variable: ${env.Environment}"
+			//echo "RepoName_Variable: ${env.Repository_Name}"
+			//echo "Host_Name:${env.Host_Name}"
+			echo "packageFilename:${env.packageFilename}"
+			echo "packageFolder:${env.packageFolder}"
+			echo "Branch_Name: ${env.Branch_Name}"
+			}
+		}
+
+        stage('=================================Git push') {
+        	when {
+                expression { History_ID != null && History_ID != "" }
+            }
+           	steps{
+                withCredentials([string(credentialsId: 'github_access_token_secret', variable: 'GITHUB_TOKEN')]) { 
+                    ansiColor('xterm') {
+                        ansiblePlaybook(
+                            playbook: "${WORKSPACE}/Siebel_Migration_Export_IRR/ansible_scripts/package_copy.yml",
+                            inventory: "${WORKSPACE}/Siebel_Migration_Export_IRR/ansible_scripts/Inventory/siebel_env.yml",
+                            //credentialsId: 'jenkins_private_key',
+                            colorized: true,
+                            extraVars: [
+                                env: "${env.Environment}",
+                                repo_name: "bpm",
+                                packageFilename: "${env.Environment}_${env.packageFilename}",
+                                packageFolder: "${env.packageFolder}",
+                                git_token: "${GITHUB_TOKEN}",
+                                Branch_Name: "${Branch_Name}"
+                            ]
+                        )
+                    }
+                }
+            }	
+        }
+	}
+	post {
+		always {
+			echo "Pipeline completed with status: ${currentBuild.currentResult}"
+		}
+	}
+}

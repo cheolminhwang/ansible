@@ -2,7 +2,7 @@ pipeline {
     agent {
 	 node{
 	label 'built-in'
-	customWorkspace '/stage/asi/automations/watermark'
+	customWorkspace '/tmp/watermark'
 	 }
 	}
       environment {
@@ -23,7 +23,7 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: "${env.Environment}_SADMIN", usernameVariable: 'USER', passwordVariable: 'PASS')]) {
                     script {
-                        def apiUrl = "https://${Host_Name}:9112/siebel/v1.0/service/Migration%20Incremental%20Runtime%20Repository%20Data%20Service/GetWatermark"
+                        def apiUrl = "https://${Host_Name}:4430/siebel/v1.0/service/Migration%20Incremental%20Runtime%20Repository%20Data%20Service/GetWatermark"
                         def jsonBody = """
 						{
 							 "body":
@@ -43,29 +43,28 @@ pipeline {
                         ).trim()
                        	def json = readJSON text: response
                        	watermark=json.watermark
-                        echo "Target Environment Watermark:${watermark}"               
+                        echo "Target Environment Watermark:${watermark}"    
+                        cat watermark >> "${customWorkspace}/watermark.txt"           
                     }
                 }
             }
         }
-		stage('Send Email'){
-		    steps {
-			withCredentials([usernamePassword(credentialsId: 'jenkins-username-password', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-
-            // Send the email
-            emailext(
-                to: "dl-hawaii-mes.devops@speridian.com,dl-hawaii-mes.devops1@speridian.com",
-                subject: "${env.Environment} - Siebel Watermark",
-                body: """
-                <p>Hi Team,</p>
-                <p>${env.Environment} Siebel Watermark Generated Successfully.</p>
-                <p>Watermark: ${watermark}</p>
-                <p>Regards,<br/>DevOps Automation</p>
-				""",
-                mimeType: 'text/html'
-            )
-          }
-		 } 
+		stage('=================================Initiate Watermark job after import') {
+            when {
+                expression { watermark != null && watermark != "" }
+            }
+            steps {
+                build job: 'Siebel_Migration_File',  
+                      wait: true,             // Wait for completion (default)
+                      propagate: true,        // Propagate failure back to this pipeline (default)
+                      parameters: [
+                          string(name: 'Environment', value: "${env.Environment}"), 
+                          string(name: 'Branch_Name', value: "${env.Branch_Name}"), 
+                          string(name: 'packageFolder', value: "${customWorkspace}"), 
+                          string(name: 'packageFilename', value: "watermark.txt") //${env.Environment}_watermark.txt
+                      ]
+            }
+        }
 	  }	
     }
 }
