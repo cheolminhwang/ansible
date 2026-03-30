@@ -45,7 +45,7 @@ pipeline {
                             def json = readJSON text: response
                             
                             // Siebel Migration API typically returns { "watermark": "VALUE" }
-                            def watermark = json.watermark
+                            watermark = json.watermark
                             
                             if (watermark) {
                                 echo "Target Environment Watermark: ${watermark}"
