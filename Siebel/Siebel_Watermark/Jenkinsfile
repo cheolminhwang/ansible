@@ -15,6 +15,11 @@ pipeline {
                 cleanWs()  // Deletes workspace contents
             }
         }
+		stage('Checkout') {
+			steps {
+				checkout scm
+			}			
+        }
 		stage('Environment Name') {
 		  steps {
 			echo "Variables: ${env.Environment}"
