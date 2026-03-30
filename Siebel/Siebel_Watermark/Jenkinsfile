@@ -78,9 +78,9 @@ pipeline {
                         //  Git commands to add, commit, and push
                         sh """
                             
-                            cd {{ WORKSPACE }}/tmp_repo
-                            git clone --filter=blob:none --sparse https://x-token-auth:{{ GIT_TOKEN }}@github.com/cheolminhwang/{{ repo_name }}.git --branch {{ env.BRANCH_NAME }}
-                            cd {{ repo_name }}
+                            cd '${WORKSPACE}'/tmp_repo
+                            git clone --filter=blob:none --sparse https://x-token-auth:$GIT_TOKEN@github.com/cheolminhwang/'${repo_name}'.git --branch '${env.BRANCH_NAME}'
+                            cd '${repo_name}'
                             git sparse-checkout set DeploymentArtifacts
 
                             git add "${WORKSPACE}/tmp_repo/watermark.txt"
@@ -92,7 +92,7 @@ pipeline {
                                 git commit -m "Update Target Environment Watermark: ${watermark}"
                                 
                                 # Push back to the current branch
-                                git push origin HEAD:${env.BRANCH_NAME}
+                                git push origin HEAD:'${env.BRANCH_NAME}'
                             else
                                 echo "No changes in watermark; skipping git commit."
                             fi
