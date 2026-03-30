@@ -71,7 +71,7 @@ pipeline {
                       wait: true,             // Wait for completion (default)
                       propagate: true,        // Propagate failure back to this pipeline (default)
                       parameters: [
-                          string(name: 'Environment', value: "${env.Environment}"), 
+                          string(name: 'Environment', value: "tses"), 
                           string(name: 'Branch_Name', value: "${env.Branch_Name}"), 
                           string(name: 'packageFolder', value: "${WORKSPACE}"), 
                           string(name: 'packageFilename', value: "watermark.txt") //${env.Environment}_watermark.txt
