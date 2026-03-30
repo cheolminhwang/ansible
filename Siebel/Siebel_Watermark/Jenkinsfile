@@ -19,32 +19,45 @@ pipeline {
 			echo "Variables: ${env.Environment}"
 			}
 		}
-		stage('Target Environment Watermark') {
+        stage('Target Environment Watermark') {
             steps {
+                // Use withCredentials to securely handle the username and password
                 withCredentials([usernamePassword(credentialsId: "${env.Environment}_SADMIN", usernameVariable: 'USER', passwordVariable: 'PASS')]) {
                     script {
                         def apiUrl = "https://${Host_Name}:4430/siebel/v1.0/service/Migration%20Incremental%20Runtime%20Repository%20Data%20Service/GetWatermark"
-                        def jsonBody = """
-						{
-							 "body":
-							 { 
-							}
-							}
-						"""
+                        
+                        // Write the request body to a file to avoid shell escaping issues
+                        writeFile file: 'request.json', text: '{"body":{}}'
 
+                        // Execute curl with the file-based data flag (-d @file)
                         def response = sh(
                             script: """
-                                curl -s --insecure -X POST '${apiUrl}' \\
-                                     -u "$USER:$PASS" \\
-                                     -H 'Content-Type: application/json' \\
-                                     -d '${jsonBody}'
+                                curl -s --insecure -X POST "${apiUrl}" \
+                                    -u "${USER}:${PASS}" \
+                                    -H 'Content-Type: application/json' \
+                                    -d @request.json
                             """,
                             returnStdout: true
                         ).trim()
-                       	def json = readJSON text: response
-                       	watermark=json.watermark
-                        echo "Target Environment Watermark:${watermark}"    
-                        cat watermark >> "${customWorkspace}/watermark.txt"           
+
+                        // Parse the JSON response
+                        if (response && response.startsWith("{")) {
+                            def json = readJSON text: response
+                            
+                            // Siebel Migration API typically returns { "watermark": "VALUE" }
+                            def watermark = json.watermark
+                            
+                            if (watermark) {
+                                echo "Target Environment Watermark: ${watermark}"
+                                
+                                // Use writeFile to overwrite or append the watermark to your tracking file
+                                writeFile file: "${customWorkspace}/watermark.txt", text: watermark + "\n"
+                            } else {
+                                error "Watermark not found in response: ${response}"
+                            }
+                        } else {
+                            error "Invalid response received from API: ${response}"
+                        }
                     }
                 }
             }
