@@ -7,6 +7,7 @@ pipeline {
 	}
       environment {
        def watermark = ""
+       def packageFolder = "/tmp"
     }
     stages {
 		stage('Cleanup') {
@@ -51,7 +52,7 @@ pipeline {
                                 echo "Target Environment Watermark: ${watermark}"
                                 
                                 // Use writeFile to overwrite or append the watermark to your tracking file
-                                writeFile file: "${WORKSPACE}/watermark.txt", text: watermark + "\n"
+                                writeFile file: "${packageFolder}/watermark.txt", text: watermark + "\n"
                             } else {
                                 error "Watermark not found in response: ${response}"
                             }
@@ -73,7 +74,7 @@ pipeline {
                       parameters: [
                           string(name: 'Environment', value: "tses"), 
                           string(name: 'Branch_Name', value: "${env.Branch_Name}"), 
-                          string(name: 'packageFolder', value: "${WORKSPACE}"), 
+                          string(name: 'packageFolder', value: "${packageFolder}"), 
                           string(name: 'packageFilename', value: "watermark.txt") //${env.Environment}_watermark.txt
                       ]
             }
