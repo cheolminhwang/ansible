@@ -56,11 +56,11 @@ pipeline {
                             
                             if (watermark) {
                                 echo "Target Environment Watermark: ${watermark}"
-                                echo "Writing to: ${WORKSPACE}/watermark.txt with value: ${watermark}"
+                                echo "Writing to: ${WORKSPACE}/tmp_repo/watermark.txt with value: ${watermark}"
                            
                                 // Use writeFile to overwrite or append the watermark to your tracking file
                                 sh "mkdir -p ${WORKSPACE}/tmp_repo"  
-                                writeFile file: "${WORKSPACE}/tmp_repo/watermark.txt", text: watermark 
+                                writeFile file: "/tmp/watermark.txt", text: watermark 
                             } else {
                                 error "Watermark not found in response: ${response}"
                             }
@@ -82,7 +82,7 @@ pipeline {
                             git clone --filter=blob:none --sparse https://x-token-auth:$GIT_TOKEN@github.com/cheolminhwang/'${repo_name}'.git --branch '${env.BRANCH_NAME}'
                             cd '${repo_name}'
                             git sparse-checkout set DeploymentArtifacts
-                            sh "cp ${WORKSPACE}/tmp_repo/watermark.txt ."
+                            sh "cp /tmp/watermark.txt ."
                             git add "watermark.txt"
                             
                             # Only commit if there are changes to avoid 'nothing to commit' errors
