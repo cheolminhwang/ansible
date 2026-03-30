@@ -6,7 +6,9 @@ all:
       ansible_python_interpreter: /usr/bin/python3
       ansible_connection: ssh  
 
-    PSD11:
-      ansible_host: psd11vsbl01.dhsie.hawaii.gov
+    tsai:
+      ansible_host: tses
+      ansible_port: 2222
+      ansible_python_interpreter: /usr/bin/python3
       ansible_connection: ssh  
 
