@@ -50,9 +50,10 @@ pipeline {
                             
                             if (watermark) {
                                 echo "Target Environment Watermark: ${watermark}"
-                                
+                                echo "Writing to: ${packageFolder}/watermark.txt with value: ${watermark}"
+                           
                                 // Use writeFile to overwrite or append the watermark to your tracking file
-                                writeFile file: "${packageFolder}/watermark.txt", text: watermark + "\n"
+                                writeFile file: "${packageFolder}/watermark.txt", text: watermark 
                             } else {
                                 error "Watermark not found in response: ${response}"
                             }
