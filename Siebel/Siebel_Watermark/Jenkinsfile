@@ -59,7 +59,7 @@ pipeline {
                                 echo "Writing to: ${WORKSPACE}/watermark.txt with value: ${watermark}"
                            
                                 // Use writeFile to overwrite or append the watermark to your tracking file
-                                mkdir {{ WORKSPACE }}/tmp_repo
+                                sh "mkdir -p ${WORKSPACE}/tmp_repo"  
                                 writeFile file: "${WORKSPACE}/tmp_repo/watermark.txt", text: watermark 
                             } else {
                                 error "Watermark not found in response: ${response}"
