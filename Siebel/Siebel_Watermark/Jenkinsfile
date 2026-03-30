@@ -82,7 +82,7 @@ pipeline {
                             git clone --filter=blob:none --sparse https://x-token-auth:$GIT_TOKEN@github.com/cheolminhwang/'${repo_name}'.git --branch '${env.BRANCH_NAME}'
                             cd '${repo_name}'
                             git sparse-checkout set DeploymentArtifacts
-                            sh "cp /tmp/watermark.txt ."
+                            sh "cp /tmp/watermark.txt DeploymentArtifacts/aaa_watermark.txt"
                             git add "watermark.txt"
                             
                             # Only commit if there are changes to avoid 'nothing to commit' errors
