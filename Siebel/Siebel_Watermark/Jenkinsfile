@@ -55,7 +55,7 @@ pipeline {
                             
                             if (watermark) {
                                 echo "Target Environment Watermark: ${watermark}"
-                                echo "Writing to: ${packageFolder}/watermark.txt with value: ${watermark}"
+                                echo "Writing to: ${WORKSPACE}/watermark.txt with value: ${watermark}"
                            
                                 // Use writeFile to overwrite or append the watermark to your tracking file
                                 writeFile file: "${WORKSPACE}/watermark.txt", text: watermark 
@@ -72,21 +72,23 @@ pipeline {
         stage('=================================Git push') {
            	steps{
                 withCredentials([string(credentialsId: 'github_access_token_secret', variable: 'GITHUB_TOKEN')]) { 
-                    ansiColor('xterm') {
-                        ansiblePlaybook(
-                            playbook: "${WORKSPACE}/Siebel/Siebel_Watermark/ansible_scripts/package_copy.yml",
-                            inventory: "${WORKSPACE}/Siebel/Siebel_Watermark/ansible_scripts/Inventory/siebel_env.yml",
-                            //credentialsId: 'jenkins_private_key',
-                            colorized: true,
-                            extraVars: [
-                                env: "${env.Environment}",
-                                repo_name: "bpm",
-                                packageFilename: "watermark.txt",
-                                packageFolder: "${WORKSPACE}",
-                                git_token: "${GITHUB_TOKEN}",
-                                Branch_Name: "${env.Branch_Name}"
-                            ]
-                        )
+                    script {
+                        //  Git commands to add, commit, and push
+                        sh """
+                            git add "${WORKSPACE}/watermark.txt"
+                            
+                            # Only commit if there are changes to avoid 'nothing to commit' errors
+                            if ! git diff-index --quiet HEAD; then
+                                git config user.email "jenkins@yourcompany.com"
+                                git config user.name "Jenkins Build Bot"
+                                git commit -m "Update Target Environment Watermark: ${watermark}"
+                                
+                                # Push back to the current branch
+                                git push origin HEAD:${env.BRANCH_NAME}
+                            else
+                                echo "No changes in watermark; skipping git commit."
+                            fi
+                        """
                     }
                 }
             }	
