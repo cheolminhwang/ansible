@@ -34,7 +34,7 @@ pipeline {
 
                         def response = sh(
                             script: """
-                                curl -s -X POST '${apiUrl}' \\
+                                curl -s --insecure -X POST '${apiUrl}' \\
                                      -u "$USER:$PASS" \\
                                      -H 'Content-Type: application/json' \\
                                      -d '${jsonBody}'
@@ -68,3 +68,4 @@ pipeline {
 	  
     }
 }
+
