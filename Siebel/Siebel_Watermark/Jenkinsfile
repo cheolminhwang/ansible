@@ -9,6 +9,7 @@ pipeline {
        def watermark = ""
        def packageFolder = "/tmp"
        def repo_name = "bpm"
+       def filename = "${env.Environment}_${env.File_Name}"
     }
     stages {
 		stage('Cleanup') {
@@ -56,11 +57,11 @@ pipeline {
                             
                             if (watermark) {
                                 echo "Target Environment Watermark: ${watermark}"
-                                echo "Writing to: ${WORKSPACE}/tmp_repo/watermark.txt with value: ${watermark}"
+                                echo "Writing to: ${WORKSPACE}/tmp_repo/${filename} with value: ${watermark}"
                            
                                 // Use writeFile to overwrite or append the watermark to your tracking file
                                 sh "mkdir -p ${WORKSPACE}/tmp_repo"  
-                                writeFile file: "${WORKSPACE}/watermark.txt", text: watermark 
+                                writeFile file: "${WORKSPACE}/${filename}", text: watermark 
                             } else {
                                 error "Watermark not found in response: ${response}"
                             }
@@ -82,8 +83,8 @@ pipeline {
                             git clone --filter=blob:none --sparse https://x-token-auth:$GIT_TOKEN@github.com/cheolminhwang/'${repo_name}'.git --branch '${env.BRANCH_NAME}'
                             cd '${repo_name}'
                             git sparse-checkout set DeploymentArtifacts
-                            cp '${WORKSPACE}'/watermark.txt DeploymentArtifacts/aaa_watermark.txt
-                            git add DeploymentArtifacts/aaa_watermark.txt
+                            cp '${WORKSPACE}'/${filename} DeploymentArtifacts/'${filename}'
+                            git add DeploymentArtifacts/'${filename}'
                             
                             # Only commit if there are changes to avoid 'nothing to commit' errors
                             if ! git diff-index --quiet HEAD; then
@@ -101,23 +102,6 @@ pipeline {
                 }
             }	
         }
-		stage('=================================Initiate Watermark job after import') {
-            when {
-                expression { false } // Disable this stage for now, enable when the downstream job is ready
-            }
-            steps {
-                build job: 'Siebel_Migration_File',  
-                      wait: true,             // Wait for completion (default)
-                      propagate: true,        // Propagate failure back to this pipeline (default)
-                      parameters: [
-                          string(name: 'Environment', value: "tses"), 
-                          string(name: 'Branch_Name', value: "${env.Branch_Name}"), 
-                          string(name: 'packageFolder', value: "${packageFolder}"), 
-                          string(name: 'packageFilename', value: "watermark.txt") //${env.Environment}_watermark.txt
-                      ]
-            }
-        }
-	  
     }
 }
 
