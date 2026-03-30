@@ -42,7 +42,7 @@ pipeline {
                             extraVars: [
                                 env: "${env.Environment}",
                                 repo_name: "bpm",
-                                packageFilename: "${env.Environment}_${env.packageFilename}",
+                                packageFilename: "${env.packageFilename}",
                                 packageFolder: "${env.packageFolder}",
                                 git_token: "${GITHUB_TOKEN}",
                                 Branch_Name: "${env.Branch_Name}"
