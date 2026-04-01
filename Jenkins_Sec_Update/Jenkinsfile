@@ -21,35 +21,33 @@ pipeline {
 				checkout scm
 			}			
 		}
-		
+        stage('Environment Name') {
+		  steps {
+			echo "Env_Variable: ${env.Environment}"
+			//echo "RepoName_Variable: ${env.Repository_Name}"
+			 
+			}
+		}		
         stage('Execution') {
             steps {
                 script {
-                    def response = sh(
-                        script: """
-							cd Jenkins_Sec_Update
-                            switch ("${env.Environment}") {
-                                case 'prod':
-							        wget https://build.dhsie.hawaii.gov/jnlpJars/jenkins-cli.jar
-                                    break 
-                                case 'nonprod': 
-							        wget http://localhost/jnlpJars/jenkins-cli.jar
-                                    break
-                                default:
-							        wget https://build-oci.dhsie.hawaii.gov/jnlpJars/jenkins-cli.jar
-                                    break
-                            }       
-							wget https://github.com/jenkinsci/plugin-installation-manager-tool/releases/download/2.13.2/jenkins-plugin-manager-2.13.2.jar
+                    // Determine the URL based on the environment
+                    def jenkinsUrl = ""
+                    switch (env.Environment) {
+                        case 'prod':    jenkinsUrl = "https://build.dhsie.hawaii.gov"; break
+                        case 'nonprod': jenkinsUrl = "http://localhost"; break
+                        default:        jenkinsUrl = "https://build-oci.dhsie.hawaii.gov"; break
+                    }
 
-                            ls -al
-							python3 pyUpdatePlugins.py
-                        """,
-                        returnStdout: true
-                    ).trim() 
-                    echo "response:${response}"               
+                    sh """
+                        cd Jenkins_Sec_Update
+                        wget ${jenkinsUrl}/jnlpJars/jenkins-cli.jar
+                        wget https://github.com/jenkinsci/plugin-installation-manager-tool/releases/download/2.13.2/jenkins-plugin-manager-2.13.2.jar
+                        python3 pyUpdatePlugins.py
+                    """
                 }
             }
-        }
+        }ß
 
         stage('SafeRestart') {
             steps {
