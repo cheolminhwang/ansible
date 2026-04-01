@@ -1,0 +1,81 @@
+pipeline {
+    agent {
+		node{
+			label 'built-in'
+			customWorkspace '/tmp/Jenkins_Sec_Update'
+		}
+	}
+    environment {       
+	   	def url = ""
+
+    }
+    stages {		 
+		stage('Cleanup') {
+			steps {				
+                deleteDir()
+			}
+		}
+		
+		stage('Checkout') {
+			steps {
+				checkout scm
+			}			
+		}
+		
+        stage('Execution') {
+            steps {
+                script {
+                    def response = sh(
+                        script: """
+							cd Jenkins_Sec_Update
+                            switch ("${env.Environment}") {
+                                case 'prod':
+							        wget https://build.dhsie.hawaii.gov/jnlpJars/jenkins-cli.jar
+                                    break 
+                                case 'nonprod': 
+							        wget http://localhost/jnlpJars/jenkins-cli.jar
+                                    break
+                                default:
+							        wget https://build-oci.dhsie.hawaii.gov/jnlpJars/jenkins-cli.jar
+                                    break
+                            }       
+							wget https://github.com/jenkinsci/plugin-installation-manager-tool/releases/download/2.13.2/jenkins-plugin-manager-2.13.2.jar
+
+                            ls -al
+							python3 pyUpdatePlugins.py
+                        """,
+                        returnStdout: true
+                    ).trim() 
+                    echo "response:${response}"               
+                }
+            }
+        }
+
+        stage('SafeRestart') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'jenkins-username-password', usernameVariable: 'J_USER', passwordVariable: 'J_PASS')]) {
+                        def response = sh(
+                            script: """
+                                cd Jenkins_Sec_Update
+                                switch ("${env.Environment}") {
+                                    case 'prod':
+                                        bash ./shSafeRestart.sh https://build.dhsie.hawaii.gov  jenkins $J_PASS
+                                        break 
+                                    case 'nonprod': 
+                                        bash ./shSafeRestart.sh http://localhost  jenkins $J_PASS
+                                        break
+                                    default:
+                                        bash ./shSafeRestart.sh https://build-oci.dhsie.hawaii.gov  jenkins $J_PASS
+                                    break
+                                }       
+                            """,
+                            returnStdout: true
+                        ).trim() 
+                        echo "response:${response}"               
+                    }
+                }
+            }
+        }   
+    }
+}
