@@ -7,7 +7,7 @@ pipeline {
     }
     environment {
         // We define this here but will populate it in a script block
-        JENKINS_URL = "dd"
+         
     }
     stages {
         stage('Initialize') {
