@@ -1,53 +1,53 @@
 pipeline {
     agent {
-		node{
-			label 'built-in'
-			customWorkspace '/tmp/Jenkins_Sec_Update'
-		}
-	}
-    environment {       
-	   	def url = ""
-
+        node {
+            label 'built-in'
+            customWorkspace '/tmp/Jenkins_Sec_Update'
+        }
     }
-    stages {		 
-		stage('Cleanup') {
-			steps {				
-                deleteDir()
-			}
-		}
-		
-		stage('Checkout') {
-			steps {
-				checkout scm
-			}			
-		}
-        stage('Environment Name') {
-		  steps {
-			echo "Env_Variable: ${env.Environment}"
-			//echo "RepoName_Variable: ${env.Repository_Name}"
-			 
-			}
-		}		
+    environment {
+        // We define this here but will populate it in a script block
+        JENKINS_URL = ""
+    }
+    stages {
+        stage('Initialize') {
+            steps {
+                script {
+                    // Centralized logic: Set the URL once for the entire run
+                    switch (env.Environment) {
+                        case 'prod':    env.JENKINS_URL = "https://hawaii.gov"; break
+                        case 'nonprod': env.JENKINS_URL = "http://localhost"; break
+                        default:        env.JENKINS_URL = "https://hawaii.gov"; break
+                    }
+                    echo "Target Environment URL: ${env.JENKINS_URL}"
+                }
+            }
+        }
+
+        stage('Cleanup') {
+            steps { deleteDir() }
+        }
+
+        stage('Checkout') {
+            steps { checkout scm }
+        }
+
         stage('Execution') {
             steps {
                 script {
-                    // Determine the URL based on the environment
-                    def jenkinsUrl = ""
-                    switch (env.Environment) {
-                        case 'prod':    jenkinsUrl = "https://build.dhsie.hawaii.gov"; break
-                        case 'nonprod': jenkinsUrl = "http://localhost"; break
-                        default:        jenkinsUrl = "https://build-oci.dhsie.hawaii.gov"; break
-                    }
-
-                    sh """
-                        cd Jenkins_Sec_Update
-                        wget ${jenkinsUrl}/jnlpJars/jenkins-cli.jar
-                        wget https://github.com/jenkinsci/plugin-installation-manager-tool/releases/download/2.13.2/jenkins-plugin-manager-2.13.2.jar
-                        python3 pyUpdatePlugins.py
-                    """
+                    def response = sh(
+                        script: """
+                            cd Jenkins_Sec_Update
+                            wget ${env.JENKINS_URL}/jnlpJars/jenkins-cli.jar
+                            wget https://github.com
+                            python3 pyUpdatePlugins.py
+                        """,
+                        returnStdout: true
+                    ).trim()
+                    echo "Execution response: ${response}"
                 }
             }
-        }ß
+        }
 
         stage('SafeRestart') {
             steps {
@@ -56,24 +56,16 @@ pipeline {
                         def response = sh(
                             script: """
                                 cd Jenkins_Sec_Update
-                                switch ("${env.Environment}") {
-                                    case 'prod':
-                                        bash ./shSafeRestart.sh https://build.dhsie.hawaii.gov  jenkins $J_PASS
-                                        break 
-                                    case 'nonprod': 
-                                        bash ./shSafeRestart.sh http://localhost  jenkins $J_PASS
-                                        break
-                                    default:
-                                        bash ./shSafeRestart.sh https://build-oci.dhsie.hawaii.gov  jenkins $J_PASS
-                                    break
-                                }       
+                                # Reusing the JENKINS_URL set in the first stage
+                                bash ./shSafeRestart.sh ${env.JENKINS_URL} jenkins \$J_PASS
                             """,
                             returnStdout: true
-                        ).trim() 
-                        echo "response:${response}"               
+                        ).trim()
+                        // Note: Be careful echoing responses that might contain $J_PASS
+                        echo "Restart triggered for ${env.JENKINS_URL}"
                     }
                 }
             }
-        }   
+        }
     }
 }
