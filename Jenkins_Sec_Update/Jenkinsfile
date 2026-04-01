@@ -7,7 +7,7 @@ pipeline {
     }
     environment {
         // We define this here but will populate it in a script block
-         def JENKINS_URL = "www"
+         def JENKINS_URLxxxx= "www"
     }
     stages {
         stage('Initialize') {
