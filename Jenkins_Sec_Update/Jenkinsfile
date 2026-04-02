@@ -1,14 +1,14 @@
 pipeline {
     agent {
-        node {
-            label 'built-in'
-            customWorkspace '/tmp/Jenkins_Sec_Update'
-        }
+		node{
+			label 'built-in'
+			customWorkspace '/tmp/Jenkins_Sec_Update'
+		}
+	}
+    environment {       
+	   	def url = ""
     }
-    environment {
-        // We define this here but will populate it in a script block
-         def JENKINS_URLxxxx= "www"
-    }
+
     stages {
         stage('Initialize') {
             steps {
@@ -16,9 +16,9 @@ pipeline {
                     // Centralized logic: Set the URL once for the entire run
                      echo " Environment : ${env.Environment}"
                    switch (env.Environment) {
-                        case 'prod':    env.JENKINS_URL = "https://hawaii.gov"; break
-                        case 'nonprod': env.JENKINS_URL = "http://localhost"; break
-                        default:        env.JENKINS_URL = "https://hawaii.gov"; break
+                        case 'prod':    env.JENKINS_URL = "https://build.dhsie.hawaii.gov"; break
+                        case 'nonprod': env.JENKINS_URL = "https://build-nonp.dhsie.hawaii.gov"; break
+                        default:        env.JENKINS_URL = "http://localhost:8080"; break
                     }
                     echo "Target Environment URL: ${env.JENKINS_URL}"
                 }
@@ -36,16 +36,19 @@ pipeline {
         stage('Execution') {
             steps {
                 script {
-                    def response = sh(
-                        script: """
-                            cd Jenkins_Sec_Update
-                            wget ${env.JENKINS_URL}/jnlpJars/jenkins-cli.jar
-                            wget https://github.com
-                            python3 pyUpdatePlugins.py
-                        """,
-                        returnStdout: true
-                    ).trim()
-                    echo "Execution response: ${response}"
+                    withCredentials([usernamePassword(credentialsId: 'jenkins-username-password', usernameVariable: 'J_USER', passwordVariable: 'J_PASS')]) {
+                        def response = sh(
+                            script: """
+                                cd Jenkins_Sec_Update
+                                wget ${env.JENKINS_URL}/jnlpJars/jenkins-cli.jar
+                                wget https://github.com/jenkinsci/plugin-installation-manager-tool/releases/download/2.13.2/jenkins-plugin-manager-2.13.2.jar
+
+                                python3 pyUpdatePlugins.py --user \$J_USER --token \$J_PASS --url ${env.JENKINS_URL}
+                            """,
+                            returnStdout: true
+                        ).trim()
+                        echo "Execution response: ${response}"
+                    }
                 }
             }
         }

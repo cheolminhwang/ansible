@@ -24,7 +24,7 @@ groovy_script="
     import jenkins.security.ApiTokenProperty
     import hudson.model.User
     def tokens = [:]
-    user = User.get('chwang',false)
+    user = User.get('jenkins',false)
         def apiTokenProperty = user.getProperty(ApiTokenProperty.class)
         if (apiTokenProperty) {
             tokens[user.id] = apiTokenProperty.tokenStore.tokenList.collectEntries { token ->
