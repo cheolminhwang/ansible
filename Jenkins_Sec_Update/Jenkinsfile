@@ -43,7 +43,7 @@ pipeline {
                                 wget ${env.JENKINS_URL}/jnlpJars/jenkins-cli.jar
                                 wget https://github.com/jenkinsci/plugin-installation-manager-tool/releases/download/2.13.2/jenkins-plugin-manager-2.13.2.jar
 
-                                python3 pyUpdatePlugins.py --user \$J_USER --token \$J_PASS --url ${env.JENKINS_URL}
+                                python3 pyUpdatePlugins.py --user $J_USER --token jenkins --url ${env.JENKINS_URL}
                             """,
                             returnStdout: true
                         ).trim()
