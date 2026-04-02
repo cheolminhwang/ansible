@@ -48,12 +48,16 @@ pipeline {
                             returnStdout: true
                         ).trim()
                         echo "Execution response: ${response}"
+                        env.OUT = "OK"
                     }
                 }
             }
         }
 
         stage('SafeRestart') {
+            when { 
+                expression { return env.OUT == "OK" }
+            }
             steps {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'jenkins-username-password', usernameVariable: 'J_USER', passwordVariable: 'J_PASS')]) {
