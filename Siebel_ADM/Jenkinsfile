@@ -8,6 +8,7 @@ pipeline {
       environment {       
 	   	def result = ""
 		def Repo_Name = "bpm"
+		def Remote_User = "devopsadmin"
 		def SFS_Folder = "/sfs/migration/ADM"
 		def Ansible_Host_Name = "app_server_01"
 		def ADM_Folder = "DeploymentArtifacts/ADM"
