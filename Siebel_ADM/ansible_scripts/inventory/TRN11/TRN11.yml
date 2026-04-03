@@ -1,0 +1,14 @@
+all:
+  children:
+    TRN11:
+      children:
+        App_Servers:
+          hosts:
+            app_server_01:
+              ansible_ssh_host: trn11vsbl01.dhsie.hawaii.gov
+              ansible_connection: ssh
+        Web_Servers:
+          hosts:
+            web_server_01:
+              ansible_ssh_host: trn11vsai01.dhsie.hawaii.gov
+              ansible_connection: ssh

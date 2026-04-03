@@ -1,0 +1,197 @@
+pipeline {
+    agent {
+	 	node {
+			label 'built-in'
+			customWorkspace '/stage/asi/automations/Siebel_ADM'
+	 	}
+	}
+      environment {       
+	   	def result = ""
+		def Repo_Name = "sbl_code_repo"
+		def SFS_Folder = "/u01/sfs/migration/ADM"
+		def Ansible_Host_Name = "app_server_01"
+		def ADM_Folder = "DeploymentArtifacts/ADM"
+    }
+    stages {
+		stage('Cleanup') {
+            steps {
+                cleanWs()  // Deletes workspace contents
+            }
+        }
+		stage('Environment Name') {
+		  	steps {
+				echo "Variables: ${env.Environment},${env.Branch_Name},AllSessions:${env.AllSessions},${env.Sessions}"
+		  	}
+		}		
+		stage('Checkout devops automation repository') {
+			steps{			
+				checkout scm			
+			}
+	    }
+		stage('Git Clone of Siebel repository') {
+			steps {
+				script {
+					withCredentials([string(credentialsId: 'kolea_gitlab_access_token_secret', variable: 'GIT_TOKEN')]) {
+						def response = sh(
+                            script: """
+								rm -rf ${Repo_Name}
+								git clone --filter=blob:none --sparse https://x-token-auth:${GIT_TOKEN}@$(URL_MQD)/kolea/CRM/${Repo_Name}.git --branch ${env.Branch_Name}
+						    	cd ${Repo_Name}
+                                git sparse-checkout set DeploymentArtifacts                   
+                            """,
+                            returnStdout: true
+                        ).trim() 
+                        echo "response:${response}"               
+					}
+				}
+			}
+	  	}
+		stage('Running Ansible to copy all sessions to import folder') {
+			when {
+                expression { return env.AllSessions == "true" }
+            }
+		 	steps{
+				script {
+					echo "Copying folder ${SFS_Folder} for all sessions"
+					ansiColor('xterm') {
+						def result = ansiblePlaybook(
+							playbook: "${WORKSPACE}/Siebel_Migration/Siebel_ADM/ansible_scripts/SiebelADM_ImportAll.yml",
+							inventory: "${WORKSPACE}/Siebel_Migration/Siebel_ADM/ansible_scripts/inventory/${env.Environment}/${env.Environment}.yml",
+							colorized: true,
+							extraVars: [
+								env: "${env.Environment}",
+								Repo_Name: "${Repo_Name}",
+								folder: "${SFS_Folder}",
+								ADM_Folder: "${ADM_Folder}",
+								workspace: "${WORKSPACE}"
+							]
+						)
+					}
+ 				}
+		  	}	
+		}
+		stage('Listing All Sessions in ADM folder and Import all') {
+			when {
+                expression { return env.AllSessions == "true" }
+            }
+		 	steps{
+				script {
+					def result = sh(
+						script: """
+							ANSIBLE_STDOUT_CALLBACK=json ansible-playbook \
+							-i ${WORKSPACE}/Siebel_Migration/Siebel_ADM/ansible_scripts/inventory/${env.Environment}/${env.Environment}.yml \
+							${WORKSPACE}/Siebel_Migration/Siebel_ADM/ansible_scripts/ListSessions.yml \
+							-e "env=${env.Environment}"  \
+							-e "folder=${SFS_Folder}"  
+						""",
+						returnStdout: true
+						).trim()
+					def jsonObject = readJSON text: result
+						
+					def jsonContent = jsonObject.plays[0].tasks[0].hosts."${Ansible_Host_Name}".files
+					jsonContent.each { item ->
+						//echo "item.path ${item.path}"
+						def fullName = item.path.tokenize('/')[-1]
+						def line = fullName.tokenize('.')[0]	
+							line = line.trim()
+						if (line) {  // Skip empty lines
+							echo "Indiviual Import Processing: ${line}"
+							
+							def apiUrl = "https://${Host_Name}:9112/siebel/v1.0/workflow/UDA%20Batch%20Import"
+							def jsonBody = """
+								{
+									"Object Id" : "${line}",
+									"Import File Directory" : "${SFS_Folder}"
+								}
+							"""
+							/* for testing purpose, commenting out actual API call */
+							def response = sh(
+								script: """
+									curl -s -X POST '${apiUrl}' \\
+										-u "$USER:$PASS" \\
+										-H 'Content-Type: application/json' \\
+										-d '${jsonBody}'
+								""",
+								returnStdout: true
+							).trim()
+							def json = readJSON text: response
+							repository_trackingid=json.trackingid
+							echo "Response:${json}"
+							
+						}						
+					}
+				}
+	  		}	
+		}		
+		stage('Running Ansible to copy import folder') {
+			when {
+                expression { return env.AllSessions == "false" }
+            }
+		 	steps{
+				script {
+					"${env.Sessions}".split('\n').each { line ->
+						line = line.trim()
+						if (line) {  // Skip empty lines
+							echo "Copying : ${line}"
+							ansiColor('xterm') {
+								def result = ansiblePlaybook(
+									playbook: "${WORKSPACE}/Siebel_Migration/Siebel_ADM/ansible_scripts/SiebelADM_Import.yml",
+									inventory: "${WORKSPACE}/Siebel_Migration/Siebel_ADM/ansible_scripts/inventory/${env.Environment}/${env.Environment}.yml",
+									colorized: true,
+									extraVars: [
+										env: "${env.Environment}",
+										Repo_Name: "${Repo_Name}",
+										folder: "${SFS_Folder}",
+										ADM_Folder: "${ADM_Folder}",
+										sessionid: "${line}",
+										Remote_User: "${Remote_User}",
+										workspace: "${WORKSPACE}"
+									]
+								)
+							}
+						}
+					}
+				}
+		  	}	
+		}		
+		stage('ADM Import') {
+			when {
+                expression { return env.AllSessions == "false" }
+            }
+            steps {
+                withCredentials([usernamePassword(credentialsId: "${env.Environment}_SADMIN", usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                    script {
+						"${env.Sessions}".split('\n').each { line ->
+							line = line.trim()
+							if (line) {  // Skip empty lines
+								echo "Import Processing: ${line}"
+								
+								def apiUrl = "https://${Host_Name}:9112/siebel/v1.0/workflow/UDA%20Batch%20Import"
+								def jsonBody = """
+									{
+										"Object Id" : "${line}",
+										"Import File Directory" : "${SFS_Folder}"
+									}
+								"""
+								/* for testing purpose, commenting out actual API call */
+								def response = sh(
+									script: """
+										curl -s -X POST '${apiUrl}' \\
+											-u "$USER:$PASS" \\
+											-H 'Content-Type: application/json' \\
+											-d '${jsonBody}'
+									""",
+									returnStdout: true
+								).trim()
+								def json = readJSON text: response
+								repository_trackingid=json.trackingid
+								echo "Response:${json}"
+								
+							}
+                    	}
+                    }
+                }
+            }
+        }
+    }
+}

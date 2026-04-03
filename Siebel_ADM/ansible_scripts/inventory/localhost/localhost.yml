@@ -1,0 +1,14 @@
+all:
+  children:
+    localhost:
+      children:
+        App_Servers:
+          hosts:
+            app_server_01:
+              ansible_ssh_host: tses.company.com
+              ansible_connection: ssh
+        Web_Servers:
+          hosts:
+            web_server_01:
+              ansible_ssh_host: sit12vsai01.dhsie.hawaii.gov
+              ansible_connection: ssh

@@ -1,0 +1,23 @@
+- hosts: "{{ env }}"
+  gather_facts: no
+  remote_user: devopsadmin
+  become: yes
+  become_user: oracle
+  become_method: sudo
+  
+  vars_files:
+    - ./ansible_automation_password_vault.yml
+    
+  tasks:
+    - name: List all sessions in the ADM folder
+      find:
+        paths: "{{ folder }}"
+        patterns: "*.ini"
+        file_type: file
+      register: List_of_Sessions
+      run_once: true
+
+    - name: Show list of sessions
+      debug:
+        msg: "{{ List_of_Sessions.files | map(attribute='path') | list }}"
+      run_once: true

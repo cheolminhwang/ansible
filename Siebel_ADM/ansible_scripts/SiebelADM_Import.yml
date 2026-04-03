@@ -1,0 +1,48 @@
+---
+- hosts: "{{ env }}"
+  gather_facts: no
+  remote_user: "{{ Remote_User }}"
+  become: yes
+  become_user: oracle
+  become_method: sudo
+  
+  #vars_files:
+  #  - ./ansible_automation_password_vault.yml
+  
+  vars:
+    backup_date: "{{ '%m%d%Y' | strftime }}"
+    ansible_python_interpreter: /usr/bin/python3.12
+    
+  tasks:
+
+    - name: Select a random app server
+      set_fact:
+        selected_siebel_server_host: "{{ groups['App_Servers'] | random }}"
+        
+        
+    - name: Run task on the selected app server
+      ansible.builtin.command: echo "Running on {{ selected_siebel_server_host }}"
+      delegate_to: "{{ selected_siebel_server_host }}"
+      run_once: true
+    
+    - name: Print environment and branch name
+      debug:
+        msg: "Running playbook in Environment: {{ env }}, Repo_Name: {{ Repo_Name }}, sessionid: {{ sessionid }}"
+      run_once: true  
+
+    - name: Check if export folder exists
+      stat:
+        path: "{{ folder }}"
+      register: ADM_folder
+      run_once: true
+
+    - name: Copy Export Folder from Siebel repository to siebel sfs folder
+      run_once: true
+      ansible.builtin.copy:
+        src: "{{ item }}"
+        dest: "{{ folder }}/"
+        force: yes
+        mode: '0777'
+      with_fileglob :
+        - "{{ workspace }}/{{ Repo_Name }}/{{ ADM_Folder }}/{{ sessionid }}*"
+        
