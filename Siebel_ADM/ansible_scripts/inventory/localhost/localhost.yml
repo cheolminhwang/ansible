@@ -5,9 +5,10 @@ all:
         App_Servers:
           hosts:
             app_server_01:
-              ansible_ssh_host: tses.company.com
-              ansible_ssh_port: 2222
-              ansible_connection: ssh
+              ansible_host: tses
+              ansible_port: 2222
+              ansible_python_interpreter: /usr/bin/python3
+              ansible_connection: ssh  
         Web_Servers:
           hosts:
             web_server_01:
