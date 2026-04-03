@@ -6,9 +6,11 @@ all:
           hosts:
             app_server_01:
               ansible_ssh_host: tses.company.com
+              ansible_ssh_port: 2222
               ansible_connection: ssh
         Web_Servers:
           hosts:
             web_server_01:
               ansible_ssh_host: sit12vsai01.dhsie.hawaii.gov
+              ansible_ssh_port: 2222
               ansible_connection: ssh
