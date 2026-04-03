@@ -183,7 +183,7 @@ pipeline {
 							if (line) {  // Skip empty lines
 								echo "Import Processing: ${line}"
 								
-								def apiUrl = "https://${Host_Name}:4330/siebel/v1.0/workflow/UDA%20Batch%20Import"
+								def apiUrl = "https://${Host_Name}:4430/siebel/v1.0/workflow/UDA%20Batch%20Import"
 								def jsonBody = """
 									{
 										"Object Id" : "${line}",
@@ -193,7 +193,7 @@ pipeline {
 								/* for testing purpose, commenting out actual API call */
 								def response = sh(
 									script: """
-										curl -v -k -X POST '${apiUrl}' \\
+										curl -k -X POST '${apiUrl}' \\
 											-u "$USER:$PASS" \\
 											-H 'Content-Type: application/json' \\
 											-d '${jsonBody}'
