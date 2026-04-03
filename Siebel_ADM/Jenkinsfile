@@ -193,7 +193,7 @@ pipeline {
 								/* for testing purpose, commenting out actual API call */
 								def response = sh(
 									script: """
-										curl -s -X POST '${apiUrl}' \\
+										curl -v -k -X POST '${apiUrl}' \\
 											-u "$USER:$PASS" \\
 											-H 'Content-Type: application/json' \\
 											-d '${jsonBody}'
