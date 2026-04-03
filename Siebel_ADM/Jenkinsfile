@@ -22,9 +22,8 @@ pipeline {
             steps {
                 script {
                     // Centralized logic: Set the URL once for the entire run
-                    //echo " Environment : ${env.Environment}"
-					env.Environment = "local"
-					env.Branch_Name = "master"
+                    echo " Environment : ${env.Environment}"
+					//env.Branch_Name = "master"
                    	switch (env.Environment) {
                         case 'prod':    env.JENKINS_URL = "https://build.dhsie.hawaii.gov"; break
                         case 'nonprod': env.JENKINS_URL = "https://build-nonp.dhsie.hawaii.gov"; break
