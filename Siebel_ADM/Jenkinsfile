@@ -199,6 +199,7 @@ pipeline {
 									""",
 									returnStdout: true
 								).trim()
+								echo "Response text:${response}"
 								def json = readJSON text: response
 								repository_trackingid=json.trackingid
 								echo "Response:${json}"
