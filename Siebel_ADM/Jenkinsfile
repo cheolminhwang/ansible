@@ -52,7 +52,7 @@ pipeline {
 						def response = sh(
                             script: """
 								rm -rf ${Repo_Name}
-								git clone --filter=blob:none --sparse https://x-token-auth:${GIT_TOKEN}@github.com:cheolminhwang/bpm.git --branch ${env.Branch_Name}
+								git clone --filter=blob:none --sparse https://x-token-auth:${GIT_TOKEN}@github.com/cheolminhwang/bpm.git --branch ${env.Branch_Name}
 						    	cd ${Repo_Name}
                                 git sparse-checkout set DeploymentArtifacts                   
                             """,
