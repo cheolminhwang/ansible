@@ -69,7 +69,18 @@ pipeline {
                 expression { (error_message == null || error_message == "") && watermark != "" }
             }
             steps{
-                withCredentials([string(credentialsId: 'github_access_token_secret', variable: 'GITHUB_TOKEN')]) { 
+                def remote = [:]
+                remote.name = 'tcgw'
+                remote.host = 'tcgw.company.com'
+                remote.user = 'devopsadmin'
+                remote.allowAnyHosts = true
+
+                withCredentials([sshUserPrivateKey(credentialsId: 'my-ssh-key', keyFileVariable: 'identity')]) {
+                    remote.identityFile = identity
+                    // Fetches 'file.txt' from the remote host to the local Jenkins workspace
+                    sshGet remote: remote, from: '${watermark}', into: 'file.txt', override: true
+                }
+                /*withCredentials([string(credentialsId: 'github_access_token_secret', variable: 'GITHUB_TOKEN')]) { 
                     ansiColor('xterm') {
                         ansiblePlaybook(
                             playbook: "${WORKSPACE}/Siebel_Watermark_Generation/ansible_scripts/file_copy.yml",
@@ -85,7 +96,7 @@ pipeline {
                             ]
                         )
                     }
-                }
+                } */
             }	
         }
 /* 		stage('Send Email'){
