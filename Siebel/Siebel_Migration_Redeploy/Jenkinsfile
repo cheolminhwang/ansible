@@ -38,7 +38,7 @@ pipeline {
                         ).trim()
                         echo "response: ${response}" 
                         def response2 = sh(
-                            script: """"
+                            script: """
                                 bash ${WORKSPACE}/Siebel/Siebel_Migration_Redeploy/deployMigration.sh -u ${USER} -p ${PASS} -a ${env.Host_Name} -b ${env.Host_Port} -d ${env.Profile_Name} -e ${MIG_NAME} -f ${MIG_DESC} 
                             """,
                             returnStdout: true
