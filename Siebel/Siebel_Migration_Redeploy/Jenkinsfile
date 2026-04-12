@@ -32,14 +32,14 @@ pipeline {
                     script {
                         def response = sh(
                             script: """
-                                bash ${WORKSPACE}/deleteMigration.sh -u ${USER} -p ${PASS} -a ${env.Host_Name} -b ${env.Host_Port} -d ${env.Profile_Name}
+                                bash ${WORKSPACE}/Siebel/Siebel_Migration_Redeploy/deleteMigration.sh -u ${USER} -p ${PASS} -a ${env.Host_Name} -b ${env.Host_Port} -d ${env.Profile_Name}
                             """,
                             returnStdout: true
                         ).trim()
                         echo "response: ${response}" 
                         def response2 = sh(
                             script: """"
-                                bash ${WORKSPACE}/deployMigration.sh -u ${USER} -p ${PASS} -a ${env.Host_Name} -b ${env.Host_Port} -d ${env.Profile_Name} -e ${MIG_NAME} -f ${MIG_DESC} "
+                                bash ${WORKSPACE}/Siebel/Siebel_Migration_Redeploy/deployMigration.sh -u ${USER} -p ${PASS} -a ${env.Host_Name} -b ${env.Host_Port} -d ${env.Profile_Name} -e ${MIG_NAME} -f ${MIG_DESC} "
                             """,
                             returnStdout: true
                         ).trim()
