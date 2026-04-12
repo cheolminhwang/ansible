@@ -28,9 +28,10 @@ pipeline {
 		}
 		stage('=================================Target Environment  ') {
             steps {
-                withCredentials([usernamePassword(credentialsId: "${env.Environment}_SADMIN", usernameVariable: 'USER', passwordVariable: 'PASS')]) {
-                    step{ 
-                        script {
+//                withCredentials([usernamePassword(credentialsId: "${env.Environment}_SADMIN", usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                step { 
+                    withCredentials([usernamePassword(credentialsId: "${env.Environment}_SADMIN", usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                       script {
                             def response = sh(
                                 script: """
                                     bash ${WORKSPACE}/Siebel/Siebel_Migration_Redeploy/deleteMigration.sh -u ${USER} -p ${PASS} -a ${env.Host_Name} -b ${env.Host_Port} -d ${env.Profile_Name}
@@ -40,8 +41,10 @@ pipeline {
                             echo "response: ${response}" 
                         }
                     }
-                    step{
-                        script {
+                }
+                step {
+                    withCredentials([usernamePassword(credentialsId: "${env.Environment}_SADMIN", usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                       script {
                             def response2 = sh(
                                 script: """"
                                     bash ${WORKSPACE}/Siebel/Siebel_Migration_Redeploy/deployMigration.sh -u ${USER} -p ${PASS} -a ${env.Host_Name} -b ${env.Host_Port} -d ${env.Profile_Name} -e ${MIG_NAME} -f ${MIG_DESC} "
