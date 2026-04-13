@@ -5,6 +5,5 @@ Web_Servers
 [App_Servers]
 app_server_01            ansible_ssh_host=tses.company.com   ansible_connection=ssh ansible_port=2222
 
-
 [Web_Servers]
 web_server_01            ansible_ssh_host=tsai.company.com   ansible_connection=ssh ansible_port=2222

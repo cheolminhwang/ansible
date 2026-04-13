@@ -7,10 +7,6 @@
 node {
     ws('/tmp/siebel_repository_rename') {
         timestamps {
-            stage('Cleanup Workspace') {
-                // Cleanup Workspace
-                deleteDir()
-            }
 
             stage('Checkout Automation Scripts') {
                 // Checkout pipeline code base from Git
