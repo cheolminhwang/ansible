@@ -18,7 +18,7 @@ node {
                 ansiColor('xterm') {
                     ansiblePlaybook(
                         playbook: "${workspace}/Siebel/Siebel_Repository_Rename/ansible_scripts/siebelrepositoryrename.yml",
-                        inventory: "${workspace}/Siebel/Siebel_Repository_Rename/ansible_scripts/inventory/${env.Environment}/${env.Environment}.yml",
+                        inventory: "${workspace}/Siebel/Siebel_Repository_Rename/ansible_scripts/inventory/siebel_env.yml",
                         colorized: true,
                         extraVars: [
                             Env: "${env.Environment}",

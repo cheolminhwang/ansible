@@ -10,17 +10,9 @@
 
   tasks:
             
-    - name: Select a random app server
-      set_fact:
-        selected_siebel_server_host: "{{ groups['App_Servers'] | random }}"
-
-    - name: Run task on the selected app server
-      ansible.builtin.command: echo "Running on {{ selected_siebel_server_host }}"
-      delegate_to: "{{ selected_siebel_server_host }}"
-      run_once: true                
+          
 
     - name: Create SQL file for renaming Siebel Repository
-      when: inventory_hostname in groups.App_Servers
       run_once: true
       shell: |
         DATE=$(date +%Y_%m_%d)
@@ -30,7 +22,6 @@
         EXIT" > /siebel/mde/siebel/siebsrvr/rename_repo.sql
 
     - name: Read the rename_repo.sql file
-      when: inventory_hostname in groups.App_Servers
       shell: cat /siebel/mde/siebel/siebsrvr/rename_repo.sql
       register: renamerepofile
       run_once: true
@@ -38,7 +29,6 @@
     - name: Show output of the rename_repo.sql file
       debug:
         msg: "{{ renamerepofile.stdout }}"
-      when: inventory_hostname in groups.App_Servers
       run_once: true
 
     - name: Run the SQL file for renaming Siebel Repository
@@ -51,24 +41,22 @@
       args:
         executable: /bin/bash  # Required for 'source' to work
       register: repositoryrenameoutput
-      when: inventory_hostname in groups.App_Servers
       ignore_errors: true
       run_once: true
 
     - name: Show output of the command
       debug:
         msg: "{{ repositoryrenameoutput.stdout }}"
-      when: inventory_hostname in groups.App_Servers
       run_once: true
 
     - name: Check if the rename completed successfully
       debug:
         msg: "Siebel Repository Rename completed Successfully."
-      when: inventory_hostname in groups.App_Servers and 'row updated' in repositoryrenameoutput.stdout
+      when: "'row updated' in repositoryrenameoutput.stdout"
       run_once: true
 
     - name: Fail if Rename is not executed
-      when: inventory_hostname in groups.App_Servers and 'ERROR' in repositoryrenameoutput.stdout
+      when: "'ERROR' in repositoryrenameoutput.stdout"
       run_once: true
       fail:
         msg: "Siebel Repository Rename failed."
