@@ -3,35 +3,13 @@
   gather_facts: no
   remote_user: devopsadmin
   become: yes
-  become_user: oracle
+  become_user: siebel
   become_method: sudo
   vars_files:
     - ./../../ansible_automation_password_vault.yml
 
   tasks:
-    
-    - name: Siebel Server Status
-      when: inventory_hostname in groups.App_Servers
-      shell: |
-       cd /home/oracle/service_commands
-       ./service_commands.sh statusAll
-      register: server_status
-
-    - name: Siebel Server Status output
-      debug:
-        msg: "{{ server_status.stdout }}"
-      when: inventory_hostname in groups.App_Servers
-    
-    - name: Checking Server Status
-      debug:
-        msg: "Servers are properly shutdown"
-      when: inventory_hostname in groups.App_Servers and ('Siebel is SHUTDOWN' in server_status.stdout or 'Gateway is SHUTDOWN' in server_status.stdout)
-  
-    - name: Checking Server are in shutdown state
-      when: inventory_hostname in groups.App_Servers and ('Siebel is RUNNING' in server_status.stdout or 'Gateway is RUNNING' in server_status.stdout)
-      fail:
-        msg: "Servers are not properly shutdown"
-        
+            
     - name: Select a random app server
       set_fact:
         selected_siebel_server_host: "{{ groups['App_Servers'] | random }}"
@@ -49,11 +27,11 @@
         echo "UPDATE SIEBEL.S_REPOSITORY SET NAME='Siebel Repository_$DATE' WHERE NAME='Siebel Repository';
         UPDATE SIEBEL.S_REPOSITORY SET NAME='Siebel Repository' WHERE NAME='Migrated Repository';
         COMMIT;
-        EXIT" > /u01/app/siebel/siebsrvr/rename_repo.sql
+        EXIT" > /siebel/mde/siebel/siebsrvr/rename_repo.sql
 
     - name: Read the rename_repo.sql file
       when: inventory_hostname in groups.App_Servers
-      shell: cat /u01/app/siebel/siebsrvr/rename_repo.sql
+      shell: cat /siebel/mde/siebel/siebsrvr/rename_repo.sql
       register: renamerepofile
       run_once: true
 
@@ -67,8 +45,8 @@
       become: true
       become_flags: '-i'
       ansible.builtin.shell: |
-        cd /u01/app/siebel/siebsrvr
-        bash -c "source /u01/app/siebel/siebsrvr/siebenv.sh && cd /u01/app/siebel/siebsrvr/bin && sqlplus siebel/{{ siebel_password }}@{{ tns_servicename }} @/u01/app/siebel/siebsrvr/rename_repo.sql
+        cd /siebel/mde/siebel/siebsrvr
+        bash -c "source /siebel/mde/siebel/siebsrvr/siebenv.sh && cd /siebel/mde/siebel/siebsrvr/bin && sqlplus siebel/{{ siebel_password }}@{{ tns_servicename }} @/siebel/mde/siebel/siebsrvr/rename_repo.sql
         "
       args:
         executable: /bin/bash  # Required for 'source' to work
