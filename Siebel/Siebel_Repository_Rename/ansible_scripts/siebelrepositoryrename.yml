@@ -19,10 +19,10 @@
         echo "UPDATE SIEBEL.S_REPOSITORY SET NAME='Siebel Repository_$DATE' WHERE NAME='Siebel Repository';
         UPDATE SIEBEL.S_REPOSITORY SET NAME='Siebel Repository' WHERE NAME='Migrated Repository';
         COMMIT;
-        EXIT" > /siebel/mde/siebel/siebsrvr/rename_repo.sql
+        EXIT" > /siebel/mde/siebsrvr/rename_repo.sql
 
     - name: Read the rename_repo.sql file
-      shell: cat /siebel/mde/siebel/siebsrvr/rename_repo.sql
+      shell: cat /siebel/mde/siebsrvr/rename_repo.sql
       register: renamerepofile
       run_once: true
 
@@ -35,8 +35,8 @@
       become: true
       become_flags: '-i'
       ansible.builtin.shell: |
-        cd /siebel/mde/siebel/siebsrvr
-        bash -c "source /siebel/mde/siebel/siebsrvr/siebenv.sh && cd /siebel/mde/siebel/siebsrvr/bin && sqlplus siebel/{{ siebel_password }}@{{ tns_servicename }} @/siebel/mde/siebel/siebsrvr/rename_repo.sql
+        cd /siebel/mde/siebsrvr
+        bash -c "source /siebel/mde/siebsrvr/siebenv.sh && cd /siebel/mde/siebsrvr/bin && sqlplus siebel/{{ siebel_password }}@{{ tns_servicename }} @/siebel/mde/siebsrvr/rename_repo.sql
         "
       args:
         executable: /bin/bash  # Required for 'source' to work
