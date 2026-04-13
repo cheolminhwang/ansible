@@ -5,7 +5,7 @@
 */
 
 node {
-    ws('/stage/asi/siebel_repository_rename') {
+    ws('/tmp/siebel_repository_rename') {
         timestamps {
             stage('Cleanup Workspace') {
                 // Cleanup Workspace
