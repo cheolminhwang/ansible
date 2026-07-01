@@ -18,7 +18,7 @@ pipeline {
                    switch (env.Environment) {
                         case 'prod':    env.JENKINS_URL = "https://build.dhsie.hawaii.gov"; break
                         case 'nonprod': env.JENKINS_URL = "https://build-nonp.dhsie.hawaii.gov"; break
-                        default:        env.JENKINS_URL = "http://localhost:8080"; break
+                        default:        env.JENKINS_URL = "http://localhost:8088"; break
                     }
                     echo "Target Environment URL: ${env.JENKINS_URL}"
                 }
