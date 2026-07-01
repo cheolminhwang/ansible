@@ -40,8 +40,8 @@ pipeline {
                         def response = sh(
                             script: """
                                 cd Jenkins_Sec_Update
-                                wget ${env.JENKINS_URL}/jnlpJars/jenkins-cli.jar
-                                wget https://github.com/jenkinsci/plugin-installation-manager-tool/releases/download/2.13.2/jenkins-plugin-manager-2.13.2.jar
+                             #   wget ${env.JENKINS_URL}/jnlpJars/jenkins-cli.jar
+                            #    wget https://github.com/jenkinsci/plugin-installation-manager-tool/releases/download/2.13.2/jenkins-plugin-manager-2.13.2.jar
 
                                 python3 pyUpdatePlugins.py --user $J_USER --token jenkins --url ${env.JENKINS_URL}
                             """,

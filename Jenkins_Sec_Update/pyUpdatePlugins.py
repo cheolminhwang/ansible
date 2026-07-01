@@ -7,9 +7,9 @@ import argparse
 
 #Arguments
 parser = argparse.ArgumentParser("jenarg")
-parser.add_argument("--url", help="JENKINS_URL", type=str, nargs='?', default="https://build-oci.dhsie.hawaii.gov")
-parser.add_argument("--user", help="JENKINS_USER", type=str, nargs='?', default="chwang")
-parser.add_argument("--token", help="JENKINS_PASSWORD_OR_TOKEN", type=str, nargs='?', default="h%4\"[r\\"+"LXK|?GO|t")
+parser.add_argument("--url", help="JENKINS_URL", type=str, nargs='?', default="https://localhost:8088")
+parser.add_argument("--user", help="JENKINS_USER", type=str, nargs='?', default="jenkins")
+parser.add_argument("--token", help="JENKINS_PASSWORD_OR_TOKEN", type=str, nargs='?', default="jenkins")
 args = parser.parse_args()
 
 # Parameters 
@@ -72,7 +72,7 @@ def main():
         command = ' '.join(sys.argv[1:])
     else:
         # Default example command
-        command = "java -jar jenkins-plugin-manager-*.jar   --list -d /u01/app/jenkins/plugins/"
+        command = "java -jar jenkins-plugin-manager-*.jar   --list -d /var/jenkins_home/plugins/"
     print(f"Executing: {command}")
     print("-" * 50)
     # Get the set of first strings
@@ -85,7 +85,7 @@ def main():
 
     print("=" * 50)
     #------- arrange the set of all security warned plugins
-    command = "java -jar jenkins-plugin-manager-*.jar -d /u01/app/jenkins/plugins/ --view-all-security-warnings"
+    command = "java -jar jenkins-plugin-manager-*.jar -d /var/jenkins_home/plugins/ --view-all-security-warnings"
     v_set = get_command_output_to_set_explicit(command)
     print(f"Executing: {command}")
     print("-" * 50)
