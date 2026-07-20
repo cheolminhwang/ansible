@@ -1,100 +1,205 @@
 pipeline {
     agent {
-		node{
-			label 'built-in'
-			customWorkspace '/tmp/Jenkins_Sec_Update'
-		}
-	}
-    environment {       
-	   	def url = ""
+        node {
+            label 'built-in'
+            customWorkspace '/tmp/Jenkins_Sec_Update'
+        }
+    }
+
+    parameters {
+        choice(
+            name: 'Environment',
+            choices: ['nonprod', 'prod', 'local'],
+            description: 'Target Jenkins environment'
+        )
+    }
+
+    environment {
+        TARGET_JENKINS_URL = ''
+        OUT = 'FAILED'
     }
 
     stages {
         stage('Initialize') {
             steps {
                 script {
-                    // Centralized logic: Set the URL once for the entire run
-                     echo " Environment : ${env.Environment}"
-                   switch (env.Environment) {
-                        case 'prod':    env.JENKINS_URL = "https://build.dhsie.hawaii.gov"; break
-                        case 'nonprod': env.JENKINS_URL = "https://build-nonp.dhsie.hawaii.gov"; break
-                        default:        env.JENKINS_URL = "http://localhost:8088"; break
+                    echo "Environment: ${params.Environment}"
+
+                    switch (params.Environment) {
+                        case 'prod':
+                            env.TARGET_JENKINS_URL =
+                                'https://build.dhsie.hawaii.gov'
+                            break
+
+                        case 'nonprod':
+                            env.TARGET_JENKINS_URL =
+                                'https://build-nonp.dhsie.hawaii.gov'
+                            break
+
+                        case 'local':
+                            env.TARGET_JENKINS_URL =
+                                'http://localhost:8088'
+                            break
+
+                        default:
+                            error(
+                                "Unsupported environment: ${params.Environment}"
+                            )
                     }
-                    echo "Target Environment URL: ${env.JENKINS_URL}"
+
+                    echo "Target Jenkins URL: ${env.TARGET_JENKINS_URL}"
                 }
             }
         }
 
         stage('Cleanup') {
-            steps { deleteDir() }
+            steps {
+                deleteDir()
+            }
         }
 
         stage('Checkout') {
-            steps { checkout scm }
+            steps {
+                checkout scm
+            }
         }
 
         stage('Execution') {
             steps {
                 script {
-                    withCredentials([usernamePassword(credentialsId: 'jenkins-username-password', usernameVariable: 'J_USER', passwordVariable: 'J_PASS')]) {
-                        def response = sh(
-                            script: """
-                                cd Jenkins_Sec_Update
-                # 1. Clear out any old versions to avoid wildcard matching issues
-                rm -f jenkins-plugin-manager-*.jar
-                
-                # 2. Fetch the standard Jenkins controller CLI
-                wget -q "${env.JENKINS_URL}/jnlpJars/jenkins-cli.jar"
-                
-                # 3. Query the GitHub API to find the exact download URL of the latest asset
-                echo "Querying GitHub API for the latest plugin manager version..."
-                echo "$(curl -s https://github.com )"
+                    withCredentials([
+                        usernamePassword(
+                            credentialsId: 'jenkins-username-password',
+                            usernameVariable: 'J_USER',
+                            passwordVariable: 'J_PASS'
+                        )
+                    ]) {
+                        withEnv([
+                            "TARGET_URL=${env.TARGET_JENKINS_URL}"
+                        ]) {
+                            def response = sh(
+                                script: '''
+                                    set -eu
 
-                DOWNLOAD_URL=$(curl -s https://github.com | grep "browser_download_url" | cut -d '"' -f 4)
-                
-                if [ -z "$DOWNLOAD_URL" ]; then
-                    echo "ERROR: Failed to retrieve the download URL from GitHub API."
-                    exit 1
-                fi
-                
-                # 4. Download the actual versioned file (e.g., jenkins-plugin-manager-2.15.0.jar)
-                echo "Downloading from: $DOWNLOAD_URL"
-                curl -L -O -s "$DOWNLOAD_URL"
-                
-                # 5. Dynamically find the file we just downloaded
-                LATEST_JAR=$(ls jenkins-plugin-manager-*.jar | head -n 1)
-                echo "Successfully downloaded tool: $LATEST_JAR"
-                                python3 pyUpdatePlugins.py --user $J_USER --token jenkins --url ${env.JENKINS_URL}
-                            """,
-                            returnStdout: true
-                        ).trim()
-                        echo "Execution response: ${response}"
-                        env.OUT = "OK"
+                                    echo "Workspace: $(pwd)"
+
+                                    echo "Cleaning old plugin manager files..."
+                                    rm -f jenkins-plugin-manager-*.jar
+                                    rm -f jenkins-cli.jar
+
+                                    echo "Downloading Jenkins CLI..."
+                                    curl -fsSL \
+                                        "${TARGET_URL%/}/jnlpJars/jenkins-cli.jar" \
+                                        -o jenkins-cli.jar
+
+                                    if [ ! -s jenkins-cli.jar ]; then
+                                        echo "ERROR: Jenkins CLI download failed."
+                                        exit 1
+                                    fi
+
+                                    echo "Querying GitHub API for latest plugin manager..."
+
+                                    DOWNLOAD_URL=$(
+                                        curl -fsSL \
+                                            "https://api.github.com/repos/jenkinsci/plugin-installation-manager-tool/releases/latest" |
+                                        grep '"browser_download_url":' |
+                                        cut -d '"' -f 4 |
+                                        grep '/jenkins-plugin-manager-[^/]*\\.jar$' |
+                                        head -n 1
+                                    )
+
+                                    if [ -z "$DOWNLOAD_URL" ]; then
+                                        echo "ERROR: Plugin manager URL not found."
+                                        exit 1
+                                    fi
+
+                                    LATEST_JAR=$(basename "$DOWNLOAD_URL")
+
+                                    echo "Downloading plugin manager: $LATEST_JAR"
+
+                                    curl -fsSL \
+                                        "$DOWNLOAD_URL" \
+                                        -o "$LATEST_JAR"
+
+                                    if [ ! -s "$LATEST_JAR" ]; then
+                                        echo "ERROR: Plugin manager download failed."
+                                        exit 1
+                                    fi
+
+                                    echo "Downloaded tool: $LATEST_JAR"
+
+                                    python3 pyUpdatePlugins.py \
+                                        --user "$J_USER" \
+                                        --token "$J_PASS" \
+                                        --url "$TARGET_URL"
+                                ''',
+                                returnStdout: true
+                            ).trim()
+
+                            echo "Execution response:\n${response}"
+                            env.OUT = 'OK'
+                        }
                     }
                 }
             }
         }
 
-        stage('SafeRestart') {
-            when { 
-                expression { return env.OUT == "OK" }
+        stage('Safe Restart') {
+            when {
+                expression {
+                    env.OUT == 'OK'
+                }
             }
+
             steps {
                 script {
-                    withCredentials([usernamePassword(credentialsId: 'jenkins-username-password', usernameVariable: 'J_USER', passwordVariable: 'J_PASS')]) {
-                        def response = sh(
-                            script: """
-                                cd Jenkins_Sec_Update
-                                # Reusing the JENKINS_URL set in the first stage
-                                bash ./shSafeRestart.sh ${env.JENKINS_URL} jenkins \$J_PASS
-                            """,
-                            returnStdout: true
-                        ).trim()
-                        // Note: Be careful echoing responses that might contain $J_PASS
-                        echo "Restart triggered for ${env.JENKINS_URL}"
+                    withCredentials([
+                        usernamePassword(
+                            credentialsId: 'jenkins-username-password',
+                            usernameVariable: 'J_USER',
+                            passwordVariable: 'J_PASS'
+                        )
+                    ]) {
+                        withEnv([
+                            "TARGET_URL=${env.TARGET_JENKINS_URL}"
+                        ]) {
+                            sh(
+                                script: '''
+                                    set -eu
+
+                                    if [ ! -f ./shSafeRestart.sh ]; then
+                                        echo "ERROR: shSafeRestart.sh not found."
+                                        exit 1
+                                    fi
+
+                                    chmod +x ./shSafeRestart.sh
+
+                                    ./shSafeRestart.sh \
+                                        "$TARGET_URL" \
+                                        "$J_USER" \
+                                        "$J_PASS"
+                                '''
+                            )
+
+                            echo "Restart triggered for ${env.TARGET_JENKINS_URL}"
+                        }
                     }
                 }
             }
+        }
+    }
+
+    post {
+        success {
+            echo "Pipeline completed successfully."
+        }
+
+        failure {
+            echo "Pipeline failed."
+        }
+
+        always {
+            echo "Final execution status: ${env.OUT}"
         }
     }
 }
