@@ -44,7 +44,7 @@ pipeline {
                 rm -f jenkins-plugin-manager-*.jar
                 
                 # 2. Fetch the standard Jenkins controller CLI
-                wget -q "${JENKINS_URL}/jnlpJars/jenkins-cli.jar"
+                wget -q "${env.JENKINS_URL}/jnlpJars/jenkins-cli.jar"
                 
                 # 3. Query the GitHub API to find the exact download URL of the latest asset
                 echo "Querying GitHub API for the latest plugin manager version..."
