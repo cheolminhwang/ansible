@@ -134,6 +134,7 @@ stage('Initialize') {
 
                                     echo "Downloaded tool: $LATEST_JAR"
 
+                                    cd Jenkins_Sec_Update
                                     python3 pyUpdatePlugins.py \
                                         --user "$J_USER" \
                                         --token "$J_PASS" \
