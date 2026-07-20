@@ -20,38 +20,44 @@ pipeline {
     }
 
     stages {
-        stage('Initialize') {
-            steps {
-                script {
-                    echo "Environment: ${params.Environment}"
+stage('Initialize') {
+    steps {
+        script {
+            String selectedEnvironment =
+                params.Environment.toString().trim().toLowerCase()
 
-                    switch (params.Environment) {
-                        case 'prod':
-                            env.TARGET_JENKINS_URL =
-                                'https://build.dhsie.hawaii.gov'
-                            break
+            String targetUrl
 
-                        case 'nonprod':
-                            env.TARGET_JENKINS_URL =
-                                'https://build-nonp.dhsie.hawaii.gov'
-                            break
+            echo "Environment: '${selectedEnvironment}'"
 
-                        case 'local':
-                            env.TARGET_JENKINS_URL =
-                                'http://localhost:8088'
-                            break
+            switch (selectedEnvironment) {
+                case 'prod':
+                    targetUrl = 'https://build.dhsie.hawaii.gov'
+                    break
 
-                        default:
-                            error(
-                                "Unsupported environment: ${params.Environment}"
-                            )
-                    }
+                case 'nonprod':
+                    targetUrl = 'https://build-nonp.dhsie.hawaii.gov'
+                    break
 
-                    echo "Target Jenkins URL: ${env.TARGET_JENKINS_URL}"
-                }
+                case 'local':
+                    targetUrl = 'http://localhost:8088'
+                    break
+
+                default:
+                    error "Unsupported environment: '${selectedEnvironment}'"
             }
-        }
 
+            if (!targetUrl) {
+                error 'Target Jenkins URL was not resolved.'
+            }
+
+            env.TARGET_JENKINS_URL = targetUrl
+
+            echo "Local target URL: ${targetUrl}"
+            echo "Environment target URL: ${env.TARGET_JENKINS_URL}"
+        }
+    }
+}
         stage('Cleanup') {
             steps {
                 deleteDir()
