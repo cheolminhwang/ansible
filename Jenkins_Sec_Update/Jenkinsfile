@@ -154,7 +154,7 @@ stage('Initialize') {
         stage('Safe Restart') {
             when {
                 expression {
-                    env.OUT == 'OK'
+                    ${env.bSafeRestart} == 'true'
                 }
             }
 
@@ -206,7 +206,7 @@ stage('Initialize') {
         }
 
         always {
-            echo "Final execution status: ${env.OUT}"
+            //echo "Final execution status: ${env.OUT}"
         }
     }
 }
