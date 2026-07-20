@@ -206,7 +206,7 @@ stage('Initialize') {
         }
 
         always {
-            //echo "Final execution status: ${env.OUT}"
+            echo "Final execution status:  "
         }
     }
 }
