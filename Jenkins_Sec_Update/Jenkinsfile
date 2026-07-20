@@ -40,9 +40,30 @@ pipeline {
                         def response = sh(
                             script: """
                                 cd Jenkins_Sec_Update
-                             #   wget ${env.JENKINS_URL}/jnlpJars/jenkins-cli.jar
-                            #    wget https://github.com/jenkinsci/plugin-installation-manager-tool/releases/download/2.13.2/jenkins-plugin-manager-2.13.2.jar
+                # 1. Clear out any old versions to avoid wildcard matching issues
+                rm -f jenkins-plugin-manager-*.jar
+                
+                # 2. Fetch the standard Jenkins controller CLI
+                wget -q "${JENKINS_URL}/jnlpJars/jenkins-cli.jar"
+                
+                # 3. Query the GitHub API to find the exact download URL of the latest asset
+                echo "Querying GitHub API for the latest plugin manager version..."
+                echo "$(curl -s https://github.com )"
 
+                DOWNLOAD_URL=$(curl -s https://github.com | grep "browser_download_url" | cut -d '"' -f 4)
+                
+                if [ -z "$DOWNLOAD_URL" ]; then
+                    echo "ERROR: Failed to retrieve the download URL from GitHub API."
+                    exit 1
+                fi
+                
+                # 4. Download the actual versioned file (e.g., jenkins-plugin-manager-2.15.0.jar)
+                echo "Downloading from: $DOWNLOAD_URL"
+                curl -L -O -s "$DOWNLOAD_URL"
+                
+                # 5. Dynamically find the file we just downloaded
+                LATEST_JAR=$(ls jenkins-plugin-manager-*.jar | head -n 1)
+                echo "Successfully downloaded tool: $LATEST_JAR"
                                 python3 pyUpdatePlugins.py --user $J_USER --token jenkins --url ${env.JENKINS_URL}
                             """,
                             returnStdout: true
