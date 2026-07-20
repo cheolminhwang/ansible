@@ -15,7 +15,6 @@ pipeline {
     } 
 
     environment {
-        TARGET_JENKINS_URL = ''
         OUT = 'FAILED'
     }
 
@@ -54,6 +53,7 @@ stage('Initialize') {
             env.TARGET_JENKINS_URL = targetUrl
 
             echo "Local target URL: ${targetUrl}"
+            env.TARGET_JENKINS_URL = targetUrl
             echo "Environment target URL: ${env.TARGET_JENKINS_URL}"
         }
     }
