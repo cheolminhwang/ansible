@@ -39,7 +39,7 @@ stage('Initialize') {
                     break
 
                 case 'local':
-                    targetUrl = 'http://localhost:8088'
+                    targetUrl = 'http://localhost:8080'
                     break
 
                 default:
