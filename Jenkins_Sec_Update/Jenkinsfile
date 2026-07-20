@@ -6,13 +6,13 @@ pipeline {
         }
     }
 
-/*    parameters {
+    parameters {
         choice(
             name: 'Environment',
             choices: ['nonprod', 'prod', 'local'],
             description: 'Target Jenkins environment'
         )
-    } */
+    } 
 
     environment {
         TARGET_JENKINS_URL = ''
