@@ -67,12 +67,12 @@ def get_command_output_to_set(command):
 
 def main():
     # Example usage
-    if len(sys.argv) > 1:
+    #if len(sys.argv) > 1:
         # Use command from command line argument
-        command = ' '.join(sys.argv[1:])
-    else:
+        #command = ' '.join(sys.argv[1:])
+    #else:
         # Default example command
-        command = "java -jar jenkins-plugin-manager-*.jar   --list -d /var/jenkins_home/plugins/"
+    command = "java -jar jenkins-plugin-manager-*.jar   --list -d /var/jenkins_home/plugins/"
     print(f"Executing: {command}")
     print("-" * 50)
     # Get the set of first strings
